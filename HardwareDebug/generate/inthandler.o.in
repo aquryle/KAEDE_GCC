@@ -1,0 +1,1 @@
+-O0 -ffunction-sections -fdata-sections -fdiagnostics-parseable-fixits -g2 -Wstack-usage=100 -mcpu=rx64m -misa=v2 -mlittle-endian-data -I"C:/Users/sata/develop/Renesas/e2_kaede/KAEDE_GCC/generate" -Wa,-adlnh="inthandler.lst" -MMD -MP -MF"generate/inthandler.d" -MT"generate/inthandler.o" "../generate/inthandler.c" -c -o "generate/inthandler.o"
