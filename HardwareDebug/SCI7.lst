@@ -1,0 +1,329 @@
+   1                             		.file	"SCI7.c"
+   2                             		.section P,"ax"
+   3                             	.Ltext0:
+   4                             		.comm	_sci7_tx_address,4,4
+   5                             		.comm	_sci7_tx_count,2,2
+   6                             		.comm	_sci7_rx_address,4,4
+   7                             		.comm	_sci7_rx_count,2,2
+   8                             		.comm	_sci7_rx_length,2,2
+   9                             		.section	.text.SCI7_Serial_Send,"ax",@progbits
+  10                             		.global	_SCI7_Serial_Send
+  12                             	_SCI7_Serial_Send:
+  13                             	.LFB0:
+  14                             		.file 1 "../src/peripheral/SCI7.c"
+   1:../src/peripheral/SCI7.c **** /*
+   2:../src/peripheral/SCI7.c ****  * SCI7.c
+   3:../src/peripheral/SCI7.c ****  *
+   4:../src/peripheral/SCI7.c ****  *  Created on: 2024/02/01
+   5:../src/peripheral/SCI7.c ****  *      Author: sata
+   6:../src/peripheral/SCI7.c ****  */
+   7:../src/peripheral/SCI7.c **** 
+   8:../src/peripheral/SCI7.c **** #include "SCI7.h"
+   9:../src/peripheral/SCI7.c **** #include "interrupt_handlers.h"
+  10:../src/peripheral/SCI7.c **** 
+  11:../src/peripheral/SCI7.c **** volatile uint8 *sci7_tx_address;	/* SCI7 transmit buffer address */
+  12:../src/peripheral/SCI7.c **** volatile uint16 sci7_tx_count;		/* SCI7 transmit data number */
+  13:../src/peripheral/SCI7.c **** volatile uint8 *sci7_rx_address;	/* SCI7 receive buffer address */
+  14:../src/peripheral/SCI7.c **** volatile uint16 sci7_rx_count;		/* SCI7 receive data number */
+  15:../src/peripheral/SCI7.c **** volatile uint16 sci7_rx_length;		/* SCI7 receive data length */
+  16:../src/peripheral/SCI7.c **** 
+  17:../src/peripheral/SCI7.c **** 
+  18:../src/peripheral/SCI7.c **** 
+  19:../src/peripheral/SCI7.c **** void SCI7_Serial_Send(uint8 *const tx_buf, uint16 tx_num)
+  20:../src/peripheral/SCI7.c **** {
+  15                             		.loc 1 20 1
+  16 0000 7E AA                   		push.l	r10
+  17                             	.LCFI0:
+  18 0002 71 0A F8                		add	#-8, r0, r10
+  19                             	.LCFI1:
+  20 0005 EF A0                   		mov.L	r10, r0
+  21 0007 E3 A1                   		mov.L	r1, [r10]
+  22 0009 D7 A2 02                		mov.W	r2, 4[r10]
+  21:../src/peripheral/SCI7.c **** 
+  22:../src/peripheral/SCI7.c **** 	if (1U > tx_num)
+  23                             		.loc 1 22 5
+  24 000c 5D A5 02                		movu.W	4[r10], r5
+  25 000f 61 05                   		cmp	#0, r5
+  26 0011 20 6E                   		beq	.L4
+  23:../src/peripheral/SCI7.c **** 	{
+  24:../src/peripheral/SCI7.c **** 		// status = MD_ARGERROR;
+  25:../src/peripheral/SCI7.c **** 	}
+  26:../src/peripheral/SCI7.c **** 	else if (0U == IEN(SCI7, TXI7))
+  27                             		.loc 1 26 17
+  28 0013 FB 5E 00 70 08          		mov.L	#0x87000, r5
+  29 0018 CE 55 0C 02             		mov.B	524[r5], r5
+  30 001c 5B 55                   		movu.B	r5, r5
+  31 001e 68 35                   		shlr	#3, r5
+  32 0020 64 15                   		and	#1, r5
+  33                             		.loc 1 26 10
+  34 0022 5B 55                   		movu.B	r5, r5
+  35 0024 61 05                   		cmp	#0, r5
+  36 0026 20 59                   		beq	.L4
+  27:../src/peripheral/SCI7.c **** 	{
+  28:../src/peripheral/SCI7.c **** 		// status = MD_ERROR;
+  29:../src/peripheral/SCI7.c **** 	}
+  30:../src/peripheral/SCI7.c **** 	else
+  31:../src/peripheral/SCI7.c **** 	{
+  32:../src/peripheral/SCI7.c **** 		sci7_tx_address = tx_buf;
+  37                             		.loc 1 32 19
+  38 0028 FB 52 00 00 00 00       		mov.L	#_sci7_tx_address, r5
+  39 002e EC A4                   		mov.L	[r10], r4
+  40 0030 E3 54                   		mov.L	r4, [r5]
+  33:../src/peripheral/SCI7.c **** 		sci7_tx_count = tx_num;
+  41                             		.loc 1 33 17
+  42 0032 FB 52 00 00 00 00       		mov.L	#_sci7_tx_count, r5
+  43 0038 DD A4 02                		mov.W	4[r10], r4
+  44 003b D3 54                   		mov.W	r4, [r5]
+  34:../src/peripheral/SCI7.c **** 		IEN(SCI7, TXI7) = 0U;
+  45                             		.loc 1 34 3
+  46 003d FB 4E 00 70 08          		mov.L	#0x87000, r4
+  47                             		.loc 1 34 19
+  48 0042 CE 45 0C 02             		mov.B	524[r4], r5
+  49 0046 7A 35                   		bclr	#3, r5
+  50 0048 CB 45 0C 02             		mov.B	r5, 524[r4]
+  35:../src/peripheral/SCI7.c **** 		SCI7.SCR.BYTE |= 0xA0U;
+  51                             		.loc 1 35 17
+  52 004c FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+  53 0051 88 D4                   		mov.B	2[r5], r4
+  54 0053 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+  55 0058 75 34 A0                		or	#-96, r4
+  56 005b 80 D4                   		mov.B	r4, 2[r5]
+  36:../src/peripheral/SCI7.c **** 
+  37:../src/peripheral/SCI7.c **** 		/* Set TXD7 pin */
+  38:../src/peripheral/SCI7.c **** 		PORT9.PMR.BYTE |= 0x01U;
+  57                             		.loc 1 38 18
+  58 005d FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+  59 0062 CD 54 60                		mov.B	96[r5], r4
+  60 0065 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+  61 006a 65 14                   		or	#1, r4
+  62 006c C7 54 60                		mov.B	r4, 96[r5]
+  39:../src/peripheral/SCI7.c **** 		IEN(SCI7, TXI7) = 1U;
+  63                             		.loc 1 39 3
+  64 006f FB 4E 00 70 08          		mov.L	#0x87000, r4
+  65                             		.loc 1 39 19
+  66 0074 CE 45 0C 02             		mov.B	524[r4], r5
+  67 0078 78 35                   		bset	#3, r5
+  68 007a CB 45 0C 02             		mov.B	r5, 524[r4]
+  40:../src/peripheral/SCI7.c **** 	}
+  41:../src/peripheral/SCI7.c **** 
+  42:../src/peripheral/SCI7.c **** 	return;
+  69                             		.loc 1 42 2
+  70 007e 03                      		nop
+  71                             	.L4:
+  72 007f 03                      		nop
+  43:../src/peripheral/SCI7.c **** }
+  73                             		.loc 1 43 1
+  74 0080 3F AA 03                		rtsd	#12, r10-r10
+  75                             	.LFE0:
+  77                             		.section	.text.INT_Excep_SCI7_TXI7,"ax",@progbits
+  78                             		.global	_INT_Excep_SCI7_TXI7
+  80                             	_INT_Excep_SCI7_TXI7:
+  81                             	.LFB1:
+  44:../src/peripheral/SCI7.c **** 
+  45:../src/peripheral/SCI7.c **** void INT_Excep_SCI7_TXI7(void){
+  82                             		.loc 1 45 31
+  83                             		; Note: Interrupt Handler
+  84 0000 7E AA                   		push.l	r10
+  85                             	.LCFI2:
+  86 0002 6E 45                   		pushm	r4-r5
+  87                             	.LCFI3:
+  88 0004 EF 0A                   		mov.L	r0, r10
+  89                             	.LCFI4:
+  46:../src/peripheral/SCI7.c **** 	if (0U < sci7_tx_count)
+  90                             		.loc 1 46 9
+  91 0006 FB 52 00 00 00 00       		mov.L	#_sci7_tx_count, r5
+  92 000c DC 55                   		mov.W	[r5], r5
+  93                             		.loc 1 46 5
+  94 000e 5F 55                   		movu.W	r5, r5
+  95 0010 61 05                   		cmp	#0, r5
+  96 0012 20 3C                   		beq	.L6
+  47:../src/peripheral/SCI7.c **** 	{
+  48:../src/peripheral/SCI7.c **** 		SCI7.TDR = *sci7_tx_address;
+  97                             		.loc 1 48 14
+  98 0014 FB 52 00 00 00 00       		mov.L	#_sci7_tx_address, r5
+  99 001a EC 54                   		mov.L	[r5], r4
+ 100                             		.loc 1 48 3
+ 101 001c FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 102                             		.loc 1 48 14
+ 103 0021 CC 44                   		mov.B	[r4], r4
+ 104                             		.loc 1 48 12
+ 105 0023 80 DC                   		mov.B	r4, 3[r5]
+  49:../src/peripheral/SCI7.c **** 		sci7_tx_address++;
+ 106                             		.loc 1 49 18
+ 107 0025 FB 52 00 00 00 00       		mov.L	#_sci7_tx_address, r5
+ 108 002b EC 55                   		mov.L	[r5], r5
+ 109 002d 71 54 01                		add	#1, r5, r4
+ 110 0030 FB 52 00 00 00 00       		mov.L	#_sci7_tx_address, r5
+ 111 0036 E3 54                   		mov.L	r4, [r5]
+  50:../src/peripheral/SCI7.c **** 		sci7_tx_count--;
+ 112                             		.loc 1 50 16
+ 113 0038 FB 52 00 00 00 00       		mov.L	#_sci7_tx_count, r5
+ 114 003e DC 55                   		mov.W	[r5], r5
+ 115 0040 60 15                   		sub	#1, r5
+ 116 0042 DF 54                   		mov.W	r5, r4
+ 117 0044 FB 52 00 00 00 00       		mov.L	#_sci7_tx_count, r5
+ 118 004a D3 54                   		mov.W	r4, [r5]
+  51:../src/peripheral/SCI7.c **** 	}
+  52:../src/peripheral/SCI7.c **** 	else
+  53:../src/peripheral/SCI7.c **** 	{
+  54:../src/peripheral/SCI7.c **** 		SCI7.SCR.BIT.TIE = 0U;
+  55:../src/peripheral/SCI7.c **** 		SCI7.SCR.BIT.TEIE = 1U;
+  56:../src/peripheral/SCI7.c **** 	}
+  57:../src/peripheral/SCI7.c **** 
+  58:../src/peripheral/SCI7.c **** }
+ 119                             		.loc 1 58 1
+ 120 004c 2E 18                   		bra	.L8
+ 121                             	.L6:
+  54:../src/peripheral/SCI7.c **** 		SCI7.SCR.BIT.TEIE = 1U;
+ 122                             		.loc 1 54 3
+ 123 004e FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+  54:../src/peripheral/SCI7.c **** 		SCI7.SCR.BIT.TEIE = 1U;
+ 124                             		.loc 1 54 20
+ 125 0053 88 C5                   		mov.B	2[r4], r5
+ 126 0055 7A 75                   		bclr	#7, r5
+ 127 0057 80 C5                   		mov.B	r5, 2[r4]
+  55:../src/peripheral/SCI7.c **** 	}
+ 128                             		.loc 1 55 3
+ 129 0059 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+  55:../src/peripheral/SCI7.c **** 	}
+ 130                             		.loc 1 55 21
+ 131 005e 88 C5                   		mov.B	2[r4], r5
+ 132 0060 78 25                   		bset	#2, r5
+ 133 0062 80 C5                   		mov.B	r5, 2[r4]
+ 134                             	.L8:
+ 135                             		.loc 1 58 1
+ 136 0064 03                      		nop
+ 137 0065 6F 45                   		popm	r4-r5
+ 138 0067 7E BA                   		pop	r10
+ 139 0069 7F 95                   		rte
+ 140                             	.LFE1:
+ 142                             		.section	.text.Excep_TEI7,"ax",@progbits
+ 143                             		.global	_Excep_TEI7
+ 145                             	_Excep_TEI7:
+ 146                             	.LFB2:
+  59:../src/peripheral/SCI7.c **** 
+  60:../src/peripheral/SCI7.c **** void Excep_TEI7(void) {
+ 147                             		.loc 1 60 23
+ 148 0000 7E AA                   		push.l	r10
+ 149                             	.LCFI5:
+ 150 0002 EF 0A                   		mov.L	r0, r10
+ 151                             	.LCFI6:
+  61:../src/peripheral/SCI7.c **** 	PORT9.PMR.BYTE &= 0xFEU;
+ 152                             		.loc 1 61 17
+ 153 0004 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 154 0009 CD 54 60                		mov.B	96[r5], r4
+ 155 000c FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 156 0011 75 24 FE                		and	#-2, r4
+ 157 0014 C7 54 60                		mov.B	r4, 96[r5]
+  62:../src/peripheral/SCI7.c **** 
+  63:../src/peripheral/SCI7.c **** 	SCI7.SCR.BIT.TIE = 0U;
+ 158                             		.loc 1 63 2
+ 159 0017 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+ 160                             		.loc 1 63 19
+ 161 001c 88 C5                   		mov.B	2[r4], r5
+ 162 001e 7A 75                   		bclr	#7, r5
+ 163 0020 80 C5                   		mov.B	r5, 2[r4]
+  64:../src/peripheral/SCI7.c **** 	SCI7.SCR.BIT.TE = 0U;
+ 164                             		.loc 1 64 2
+ 165 0022 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+ 166                             		.loc 1 64 18
+ 167 0027 88 C5                   		mov.B	2[r4], r5
+ 168 0029 7A 55                   		bclr	#5, r5
+ 169 002b 80 C5                   		mov.B	r5, 2[r4]
+  65:../src/peripheral/SCI7.c **** 	SCI7.SCR.BIT.TEIE = 0U;
+ 170                             		.loc 1 65 2
+ 171 002d FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+ 172                             		.loc 1 65 20
+ 173 0032 88 C5                   		mov.B	2[r4], r5
+ 174 0034 7A 25                   		bclr	#2, r5
+ 175 0036 80 C5                   		mov.B	r5, 2[r4]
+  66:../src/peripheral/SCI7.c **** 
+  67:../src/peripheral/SCI7.c **** }
+ 176                             		.loc 1 67 1
+ 177 0038 03                      		nop
+ 178 0039 3F AA 01                		rtsd	#4, r10-r10
+ 179                             	.LFE2:
+ 181                             		.section	.text.INT_Excep_ICU_GROUPBL0,"ax",@progbits
+ 182                             		.global	_INT_Excep_ICU_GROUPBL0
+ 184                             	_INT_Excep_ICU_GROUPBL0:
+ 185                             	.LFB3:
+  68:../src/peripheral/SCI7.c **** 
+  69:../src/peripheral/SCI7.c **** void INT_Excep_ICU_GROUPBL0(void){
+ 186                             		.loc 1 69 34
+ 187                             		; Note: Interrupt Handler
+ 188 0000 6E 1F                   		pushm	r1-r15
+ 189                             	.LCFI7:
+ 190 0002 EF 0A                   		mov.L	r0, r10
+ 191                             	.LCFI8:
+  70:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS0);
+  71:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS1);
+  72:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS2);
+  73:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS3);
+  74:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS4);
+  75:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS5);
+  76:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS6);
+  77:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS7);
+  78:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS8);
+  79:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS9);
+  80:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS10);
+  81:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS11);
+  82:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS12);
+  83:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS13);
+  84:../src/peripheral/SCI7.c **** 	if (ICU.GRPBL0.BIT.IS14)	Excep_TEI7();	// SCI7送信完了
+ 192                             		.loc 1 84 6
+ 193 0004 FB 5E 00 70 08          		mov.L	#0x87000, r5
+ 194                             		.loc 1 84 20
+ 195 0009 EE 55 8C 01             		mov.L	1584[r5], r5
+ 196 000d 68 E5                   		shlr	#14, r5
+ 197 000f 64 15                   		and	#1, r5
+ 198                             		.loc 1 84 5
+ 199 0011 5B 55                   		movu.B	r5, r5
+ 200 0013 61 05                   		cmp	#0, r5
+ 201 0015 15                      		beq	.L12
+ 202                             		.loc 1 84 27 discriminator 1
+ 203 0016 05 00 00 00             		bsr	_Excep_TEI7
+ 204                             	.L12:
+  85:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS15)	Excep_ERI7();	// SCI7受信エラー
+  86:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS16);
+  87:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS17);
+  88:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS18);
+  89:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS19);
+  90:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS20);
+  91:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS21);
+  92:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS22);	// received
+  93:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS23);	// received
+  94:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS24);
+  95:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS25);	// received
+  96:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS26);
+  97:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS27);
+  98:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS28);
+  99:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS29);
+ 100:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS30);
+ 101:../src/peripheral/SCI7.c **** 	// if (ICU.GRPBL0.BIT.IS31);
+ 102:../src/peripheral/SCI7.c **** }
+ 205                             		.loc 1 102 1
+ 206 001a 03                      		nop
+ 207 001b 6F 1F                   		popm	r1-r15
+ 208 001d 7F 95                   		rte
+ 209                             	.LFE3:
+ 211                             		.section	.text.INT_Excep_SCI7_RXI7,"ax",@progbits
+ 212                             		.global	_INT_Excep_SCI7_RXI7
+ 214                             	_INT_Excep_SCI7_RXI7:
+ 215                             	.LFB4:
+ 103:../src/peripheral/SCI7.c **** 
+ 104:../src/peripheral/SCI7.c **** 
+ 105:../src/peripheral/SCI7.c **** void INT_Excep_SCI7_RXI7(void){ }
+ 216                             		.loc 1 105 31
+ 217                             		; Note: Interrupt Handler
+ 218 0000 7E AA                   		push.l	r10
+ 219                             	.LCFI9:
+ 220 0002 EF 0A                   		mov.L	r0, r10
+ 221                             	.LCFI10:
+ 222                             		.loc 1 105 1
+ 223 0004 03                      		nop
+ 224 0005 7E BA                   		pop	r10
+ 225 0007 7F 95                   		rte
+ 226                             	.LFE4:
+ 373                             	.Letext0:
+ 374                             		.file 2 "C:/Users/sata/develop/Renesas/e2_kaede/KAEDE_GCC/generate/iodefine.h"
+ 375                             		.file 3 "../src/peripheral/../common.h"

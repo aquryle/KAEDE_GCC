@@ -1,0 +1,1 @@
+-O0 -ffunction-sections -fdata-sections -fdiagnostics-parseable-fixits -g2 -Wstack-usage=100 -mcpu=rx64m -misa=v2 -mlittle-endian-data -I"C:/Users/sata/develop/Renesas/e2_kaede/KAEDE_GCC/generate" -Wa,-adlnh="main.lst" -MMD -MP -MF"src/main.d" -MT"src/main.o" "../src/main.c" -c -o "src/main.o"

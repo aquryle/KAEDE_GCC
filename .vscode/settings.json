@@ -1,0 +1,8 @@
+{
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "files.associations": {
+        "common.h": "c",
+        "iodefine.h": "c"
+    }
+}

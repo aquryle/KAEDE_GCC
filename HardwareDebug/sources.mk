@@ -56,4 +56,5 @@ S_UPPER_DEPS :=
 SUBDIRS := \
 generate \
 src \
+src/peripheral \
 
