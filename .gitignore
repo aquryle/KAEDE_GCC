@@ -1,3 +1,7 @@
+# -----------------------------
+# GitHub default
+# -----------------------------
+
 # Prerequisites
 *.d
 
@@ -50,3 +54,15 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+
+# -----------------------------
+# for embeded project
+# -----------------------------
+
+HardwareDebug/
+Release/
+
+
+
+
