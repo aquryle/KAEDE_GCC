@@ -57,11 +57,11 @@ dkms.conf
 
 
 # -----------------------------
-# for embeded project
+# for e2studio
 # -----------------------------
 
-HardwareDebug/*
-Release/*
+/HardwareDebug/
+/Release/
 
 
 
