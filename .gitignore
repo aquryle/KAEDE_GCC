@@ -60,8 +60,8 @@ dkms.conf
 # for embeded project
 # -----------------------------
 
-HardwareDebug/
-Release/
+HardwareDebug/*
+Release/*
 
 
 
