@@ -9,7 +9,9 @@
 /***************************************************************/
 
 #include "common.h"
+#include "./peripheral/GPIO.h"
 #include "./peripheral/SCI7.h"
+#include "./peripheral/CMT.h"
 
 #ifdef CPPAPP
 //Initialize global constructors
@@ -31,9 +33,12 @@ extern void __main()
 }
 #endif
 
+
+
 int main(void) {
 
-	uint16 num = 8;
+	volatile uint16 num = 8;
+	volatile uint32 i = 0;
 	uint8 *buf = "hello!\r\n";
 
 
@@ -144,7 +149,43 @@ int main(void) {
 	SCI7_Serial_Send(buf, num);
 
 
+	led_create();
+	init_CMT0();
+
 	while(1) {
+#if 0
+		i = 0xfffff;
+		while (i)	i--;
+		led_on(LED1);
+
+		i = 0xfffff;
+		while (i)	i--;
+		led_on(LED2);
+
+		i = 0xfffff;
+		while (i)	i--;
+		led_on(LED3);
+
+		i = 0xfffff;
+		while (i)	i--;
+		led_on(LED4);
+
+		i = 0xfffff;
+		while (i)	i--;
+		led_stop();
+#else
+		ms_wait(50);
+		led_on(LED1);
+		ms_wait(50);
+		led_on(LED2);
+		ms_wait(50);
+		led_on(LED3);
+		ms_wait(50);
+		led_on(LED4);
+		ms_wait(50);
+		led_stop();
+#endif
+
 
 	// TODO: add application code here
 	}

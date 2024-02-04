@@ -4,12 +4,18 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/peripheral/CMT.c \
+../src/peripheral/GPIO.c \
 ../src/peripheral/SCI7.c 
 
 C_DEPS += \
+./src/peripheral/CMT.d \
+./src/peripheral/GPIO.d \
 ./src/peripheral/SCI7.d 
 
 OBJS += \
+./src/peripheral/CMT.o \
+./src/peripheral/GPIO.o \
 ./src/peripheral/SCI7.o 
 
 

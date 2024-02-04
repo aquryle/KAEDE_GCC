@@ -22,438 +22,515 @@
    9:../src/main.c **** /***************************************************************/
   10:../src/main.c **** 
   11:../src/main.c **** #include "common.h"
-  12:../src/main.c **** #include "./peripheral/SCI7.h"
-  13:../src/main.c **** 
-  14:../src/main.c **** #ifdef CPPAPP
-  15:../src/main.c **** //Initialize global constructors
-  16:../src/main.c **** extern void __main()
-  17:../src/main.c **** {
-  18:../src/main.c ****   static int initialized;
-  19:../src/main.c ****   if (! initialized)
-  20:../src/main.c **** 	{
-  21:../src/main.c **** 	  typedef void (*pfunc) ();
-  22:../src/main.c **** 	  extern pfunc __ctors[];
-  23:../src/main.c **** 	  extern pfunc __ctors_end[];
-  24:../src/main.c **** 	  pfunc *p;
-  25:../src/main.c **** 
-  26:../src/main.c **** 	  initialized = 1;
-  27:../src/main.c **** 	  for (p = __ctors_end; p > __ctors; )
-  28:../src/main.c **** 	(*--p) ();
-  29:../src/main.c **** 
-  30:../src/main.c **** 	}
-  31:../src/main.c **** }
-  32:../src/main.c **** #endif
-  33:../src/main.c **** 
-  34:../src/main.c **** int main(void) {
-  14                             		.loc 1 34 16
+  12:../src/main.c **** #include "./peripheral/GPIO.h"
+  13:../src/main.c **** #include "./peripheral/SCI7.h"
+  14:../src/main.c **** #include "./peripheral/CMT.h"
+  15:../src/main.c **** 
+  16:../src/main.c **** #ifdef CPPAPP
+  17:../src/main.c **** //Initialize global constructors
+  18:../src/main.c **** extern void __main()
+  19:../src/main.c **** {
+  20:../src/main.c ****   static int initialized;
+  21:../src/main.c ****   if (! initialized)
+  22:../src/main.c **** 	{
+  23:../src/main.c **** 	  typedef void (*pfunc) ();
+  24:../src/main.c **** 	  extern pfunc __ctors[];
+  25:../src/main.c **** 	  extern pfunc __ctors_end[];
+  26:../src/main.c **** 	  pfunc *p;
+  27:../src/main.c **** 
+  28:../src/main.c **** 	  initialized = 1;
+  29:../src/main.c **** 	  for (p = __ctors_end; p > __ctors; )
+  30:../src/main.c **** 	(*--p) ();
+  31:../src/main.c **** 
+  32:../src/main.c **** 	}
+  33:../src/main.c **** }
+  34:../src/main.c **** #endif
+  35:../src/main.c **** 
+  36:../src/main.c **** 
+  37:../src/main.c **** 
+  38:../src/main.c **** int main(void) {
+  14                             		.loc 1 38 16
   15 0000 7E AA                   		push.l	r10
   16                             	.LCFI0:
-  17 0002 71 0A F8                		add	#-8, r0, r10
+  17 0002 71 0A F4                		add	#-12, r0, r10
   18                             	.LCFI1:
   19 0005 EF A0                   		mov.L	r10, r0
-  35:../src/main.c **** 
-  36:../src/main.c **** 	uint16 num = 8;
-  20                             		.loc 1 36 9
-  21 0007 F8 A5 08                		mov.W	#8, [r10]
-  37:../src/main.c **** 	uint8 *buf = "hello!\r\n";
-  22                             		.loc 1 37 9
-  23 000a F9 A2 01 00 00 00 00    		mov.L	#.LC0, 4[r10]
-  38:../src/main.c **** 
   39:../src/main.c **** 
-  40:../src/main.c **** 
-  41:../src/main.c **** /***************************************************************/
-  42:../src/main.c **** /*		System Clock											*/
-  43:../src/main.c **** /***************************************************************/
-  44:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA50Bu;
-  24                             		.loc 1 44 2
-  25 0011 FB 5E 00 00 08          		mov.L	#0x80000, r5
-  26                             		.loc 1 44 19
-  27 0016 FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  40:../src/main.c **** 	volatile uint16 num = 8;
+  20                             		.loc 1 40 18
+  21 0007 F9 A5 02 08             		mov.W	#8, 4[r10]
+  41:../src/main.c **** 	volatile uint32 i = 0;
+  22                             		.loc 1 41 18
+  23 000b F9 A6 02 00             		mov.L	#0, 8[r10]
+  42:../src/main.c **** 	uint8 *buf = "hello!\r\n";
+  24                             		.loc 1 42 9
+  25 000f F8 A2 00 00 00 00       		mov.L	#.LC0, [r10]
+  43:../src/main.c **** 
+  44:../src/main.c **** 
   45:../src/main.c **** 
-  46:../src/main.c **** 	// port
-  47:../src/main.c **** 	PORT3.PDR.BYTE = 0u;
-  28                             		.loc 1 47 2
-  29 001c FB 5E 03 C0 08          		mov.L	#0x8c003, r5
-  30                             		.loc 1 47 17
-  31 0021 F8 54 00                		mov.B	#0, [r5]
-  48:../src/main.c **** 
-  49:../src/main.c **** 	// main clock start
-  50:../src/main.c **** 	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;
-  32                             		.loc 1 50 2
-  33 0024 FB 5E 00 00 08          		mov.L	#0x80000, r5
-  34                             		.loc 1 50 23
-  35 0029 F9 54 A2 0F             		mov.B	#15, 162[r5]
-  51:../src/main.c **** 	SYSTEM.MOSCCR.BYTE = 0x00u;
-  36                             		.loc 1 51 2
-  37 002d FB 5E 00 00 08          		mov.L	#0x80000, r5
-  38                             		.loc 1 51 21
-  39 0032 F9 54 32 00             		mov.B	#0, 50[r5]
-  52:../src/main.c **** 	while (0x00u != SYSTEM.MOSCCR.BYTE);
-  40                             		.loc 1 52 8
-  41 0036 03                      		nop
-  42                             	.L2:
-  43                             		.loc 1 52 18 discriminator 1
-  44 0037 FB 5E 00 00 08          		mov.L	#0x80000, r5
-  45                             		.loc 1 52 31 discriminator 1
-  46 003c CD 55 32                		mov.B	50[r5], r5
-  47                             		.loc 1 52 8 discriminator 1
-  48 003f 5B 55                   		movu.B	r5, r5
-  49 0041 61 05                   		cmp	#0, r5
-  50 0043 21 F4                   		bne	.L2
-  53:../src/main.c **** 	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);
-  51                             		.loc 1 53 8
-  52 0045 03                      		nop
-  53                             	.L3:
-  54                             		.loc 1 53 15 discriminator 1
-  55 0046 FB 5E 00 00 08          		mov.L	#0x80000, r5
-  56                             		.loc 1 53 34 discriminator 1
-  57 004b CD 55 3C                		mov.B	60[r5], r5
-  58 004e 64 15                   		and	#1, r5
-  59                             		.loc 1 53 8 discriminator 1
-  60 0050 5B 55                   		movu.B	r5, r5
-  61 0052 61 15                   		cmp	#1, r5
-  62 0054 21 F2                   		bne	.L3
-  54:../src/main.c **** 
-  55:../src/main.c **** 	// PLL
-  56:../src/main.c **** 	SYSTEM.PLLCR.BIT.STC = 0x13;	// *10
-  63                             		.loc 1 56 2
-  64 0056 FB 4E 00 00 08          		mov.L	#0x80000, r4
-  65                             		.loc 1 56 23
-  66 005b 9D 45                   		mov.W	40[r4], r5
-  67 005d 76 25 FF C0             		and	#-16129, r5
-  68 0061 76 35 00 13             		or	#0x1300, r5
-  69 0065 95 45                   		mov.W	r5, 40[r4]
-  57:../src/main.c **** 	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;	// PLL clock source: main clock
-  70                             		.loc 1 57 2
-  71 0067 FB 4E 00 00 08          		mov.L	#0x80000, r4
-  72                             		.loc 1 57 29
-  73 006c 9D 45                   		mov.W	40[r4], r5
-  74 006e 7A 45                   		bclr	#4, r5
-  75 0070 95 45                   		mov.W	r5, 40[r4]
-  58:../src/main.c **** 	SYSTEM.PLLCR.BIT.PLIDIV = 0;	// /1
-  76                             		.loc 1 58 2
-  77 0072 FB 4E 00 00 08          		mov.L	#0x80000, r4
-  78                             		.loc 1 58 26
-  79 0077 9D 45                   		mov.W	40[r4], r5
-  80 0079 75 25 FC                		and	#-4, r5
-  81 007c 95 45                   		mov.W	r5, 40[r4]
-  59:../src/main.c **** 	SYSTEM.PLLCR2.BIT.PLLEN = 0;	// PLL start
-  82                             		.loc 1 59 2
-  83 007e FB 4E 00 00 08          		mov.L	#0x80000, r4
-  84                             		.loc 1 59 26
-  85 0083 CD 45 2A                		mov.B	42[r4], r5
-  86 0086 7A 05                   		bclr	#0, r5
-  87 0088 C7 45 2A                		mov.B	r5, 42[r4]
-  60:../src/main.c **** 	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF);
-  88                             		.loc 1 60 8
-  89 008b 03                      		nop
-  90                             	.L4:
-  91                             		.loc 1 60 14 discriminator 1
-  92 008c FB 5E 00 00 08          		mov.L	#0x80000, r5
-  93                             		.loc 1 60 33 discriminator 1
-  94 0091 CD 55 3C                		mov.B	60[r5], r5
-  95 0094 5B 55                   		movu.B	r5, r5
-  96 0096 68 25                   		shlr	#2, r5
-  97 0098 64 15                   		and	#1, r5
-  98                             		.loc 1 60 8 discriminator 1
-  99 009a 5B 55                   		movu.B	r5, r5
- 100 009c 61 15                   		cmp	#1, r5
- 101 009e 21 EE                   		bne	.L4
-  61:../src/main.c **** 
-  62:../src/main.c **** 	// division
-  63:../src/main.c **** 	/*	main clock: 12MHz, PLL: *10
-  64:../src/main.c **** 		FCLK: 60 MHz	ICLK: 120 MHz	BCLK: 120 MHz
-  65:../src/main.c **** 		PCLKA: 60 MHz	PCLKB: 60 MHz
-  66:../src/main.c **** 		PCLKC: 60 MHz	PCLKD: 60 MHz */
-  67:../src/main.c **** 	SYSTEM.SCKCR.LONG = 0x10001111;
- 102                             		.loc 1 67 2
- 103 00a0 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 104                             		.loc 1 67 20
- 105 00a5 F9 52 08 11 11 00 10    		mov.L	#0x10001111, 32[r5]
-  68:../src/main.c **** 	while (SYSTEM.SCKCR.LONG != 0x10001111);
- 106                             		.loc 1 68 8
- 107 00ac 03                      		nop
- 108                             	.L5:
- 109                             		.loc 1 68 9 discriminator 1
- 110 00ad FB 5E 00 00 08          		mov.L	#0x80000, r5
- 111                             		.loc 1 68 21 discriminator 1
- 112 00b2 AA 55                   		mov.L	32[r5], r5
- 113                             		.loc 1 68 8 discriminator 1
- 114 00b4 74 05 11 11 00 10       		cmp	#0x10001111, r5
- 115 00ba 21 F3                   		bne	.L5
-  69:../src/main.c **** 	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
- 116                             		.loc 1 69 2
- 117 00bc FB 5E 00 00 08          		mov.L	#0x80000, r5
- 118                             		.loc 1 69 21
- 119 00c1 3D D2 31                		mov.W	#49, 36[r5]
-  70:../src/main.c **** 	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
- 120                             		.loc 1 70 2
- 121 00c4 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 122                             		.loc 1 70 21
- 123 00c9 F9 54 30 01             		mov.B	#1, 48[r5]
-  71:../src/main.c **** 
-  72:../src/main.c **** 	// select clock source
-  73:../src/main.c **** 	SYSTEM.SCKCR3.WORD = 0x0400;
- 124                             		.loc 1 73 2
- 125 00cd FB 5E 00 00 08          		mov.L	#0x80000, r5
- 126                             		.loc 1 73 21
- 127 00d2 F9 59 13 00 04          		mov.W	#0x400, 38[r5]
-  74:../src/main.c **** 	while (SYSTEM.SCKCR3.WORD != 0x0400);
- 128                             		.loc 1 74 8
- 129 00d7 03                      		nop
- 130                             	.L6:
- 131                             		.loc 1 74 9 discriminator 1
- 132 00d8 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 133                             		.loc 1 74 22 discriminator 1
- 134 00dd 9C DD                   		mov.W	38[r5], r5
- 135                             		.loc 1 74 8 discriminator 1
- 136 00df 5F 55                   		movu.W	r5, r5
- 137 00e1 76 05 00 04             		cmp	#0x400, r5
- 138 00e5 21 F3                   		bne	.L6
-  75:../src/main.c **** 
-  76:../src/main.c **** 	// LOCO stop
-  77:../src/main.c **** 	SYSTEM.LOCOCR.BYTE = 0x01;
- 139                             		.loc 1 77 2
- 140 00e7 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 141                             		.loc 1 77 21
- 142 00ec F9 54 34 01             		mov.B	#1, 52[r5]
-  78:../src/main.c **** 
-  79:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA500;
- 143                             		.loc 1 79 2
- 144 00f0 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 145                             		.loc 1 79 19
- 146 00f5 FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+  46:../src/main.c **** /***************************************************************/
+  47:../src/main.c **** /*		System Clock											*/
+  48:../src/main.c **** /***************************************************************/
+  49:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA50Bu;
+  26                             		.loc 1 49 2
+  27 0015 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  28                             		.loc 1 49 19
+  29 001a FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  50:../src/main.c **** 
+  51:../src/main.c **** 	// port
+  52:../src/main.c **** 	PORT3.PDR.BYTE = 0u;
+  30                             		.loc 1 52 2
+  31 0020 FB 5E 03 C0 08          		mov.L	#0x8c003, r5
+  32                             		.loc 1 52 17
+  33 0025 F8 54 00                		mov.B	#0, [r5]
+  53:../src/main.c **** 
+  54:../src/main.c **** 	// main clock start
+  55:../src/main.c **** 	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;
+  34                             		.loc 1 55 2
+  35 0028 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  36                             		.loc 1 55 23
+  37 002d F9 54 A2 0F             		mov.B	#15, 162[r5]
+  56:../src/main.c **** 	SYSTEM.MOSCCR.BYTE = 0x00u;
+  38                             		.loc 1 56 2
+  39 0031 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  40                             		.loc 1 56 21
+  41 0036 F9 54 32 00             		mov.B	#0, 50[r5]
+  57:../src/main.c **** 	while (0x00u != SYSTEM.MOSCCR.BYTE);
+  42                             		.loc 1 57 8
+  43 003a 03                      		nop
+  44                             	.L2:
+  45                             		.loc 1 57 18 discriminator 1
+  46 003b FB 5E 00 00 08          		mov.L	#0x80000, r5
+  47                             		.loc 1 57 31 discriminator 1
+  48 0040 CD 55 32                		mov.B	50[r5], r5
+  49                             		.loc 1 57 8 discriminator 1
+  50 0043 5B 55                   		movu.B	r5, r5
+  51 0045 61 05                   		cmp	#0, r5
+  52 0047 21 F4                   		bne	.L2
+  58:../src/main.c **** 	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);
+  53                             		.loc 1 58 8
+  54 0049 03                      		nop
+  55                             	.L3:
+  56                             		.loc 1 58 15 discriminator 1
+  57 004a FB 5E 00 00 08          		mov.L	#0x80000, r5
+  58                             		.loc 1 58 34 discriminator 1
+  59 004f CD 55 3C                		mov.B	60[r5], r5
+  60 0052 64 15                   		and	#1, r5
+  61                             		.loc 1 58 8 discriminator 1
+  62 0054 5B 55                   		movu.B	r5, r5
+  63 0056 61 15                   		cmp	#1, r5
+  64 0058 21 F2                   		bne	.L3
+  59:../src/main.c **** 
+  60:../src/main.c **** 	// PLL
+  61:../src/main.c **** 	SYSTEM.PLLCR.BIT.STC = 0x13;	// *10
+  65                             		.loc 1 61 2
+  66 005a FB 4E 00 00 08          		mov.L	#0x80000, r4
+  67                             		.loc 1 61 23
+  68 005f 9D 45                   		mov.W	40[r4], r5
+  69 0061 76 25 FF C0             		and	#-16129, r5
+  70 0065 76 35 00 13             		or	#0x1300, r5
+  71 0069 95 45                   		mov.W	r5, 40[r4]
+  62:../src/main.c **** 	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;	// PLL clock source: main clock
+  72                             		.loc 1 62 2
+  73 006b FB 4E 00 00 08          		mov.L	#0x80000, r4
+  74                             		.loc 1 62 29
+  75 0070 9D 45                   		mov.W	40[r4], r5
+  76 0072 7A 45                   		bclr	#4, r5
+  77 0074 95 45                   		mov.W	r5, 40[r4]
+  63:../src/main.c **** 	SYSTEM.PLLCR.BIT.PLIDIV = 0;	// /1
+  78                             		.loc 1 63 2
+  79 0076 FB 4E 00 00 08          		mov.L	#0x80000, r4
+  80                             		.loc 1 63 26
+  81 007b 9D 45                   		mov.W	40[r4], r5
+  82 007d 75 25 FC                		and	#-4, r5
+  83 0080 95 45                   		mov.W	r5, 40[r4]
+  64:../src/main.c **** 	SYSTEM.PLLCR2.BIT.PLLEN = 0;	// PLL start
+  84                             		.loc 1 64 2
+  85 0082 FB 4E 00 00 08          		mov.L	#0x80000, r4
+  86                             		.loc 1 64 26
+  87 0087 CD 45 2A                		mov.B	42[r4], r5
+  88 008a 7A 05                   		bclr	#0, r5
+  89 008c C7 45 2A                		mov.B	r5, 42[r4]
+  65:../src/main.c **** 	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF);
+  90                             		.loc 1 65 8
+  91 008f 03                      		nop
+  92                             	.L4:
+  93                             		.loc 1 65 14 discriminator 1
+  94 0090 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  95                             		.loc 1 65 33 discriminator 1
+  96 0095 CD 55 3C                		mov.B	60[r5], r5
+  97 0098 5B 55                   		movu.B	r5, r5
+  98 009a 68 25                   		shlr	#2, r5
+  99 009c 64 15                   		and	#1, r5
+ 100                             		.loc 1 65 8 discriminator 1
+ 101 009e 5B 55                   		movu.B	r5, r5
+ 102 00a0 61 15                   		cmp	#1, r5
+ 103 00a2 21 EE                   		bne	.L4
+  66:../src/main.c **** 
+  67:../src/main.c **** 	// division
+  68:../src/main.c **** 	/*	main clock: 12MHz, PLL: *10
+  69:../src/main.c **** 		FCLK: 60 MHz	ICLK: 120 MHz	BCLK: 120 MHz
+  70:../src/main.c **** 		PCLKA: 60 MHz	PCLKB: 60 MHz
+  71:../src/main.c **** 		PCLKC: 60 MHz	PCLKD: 60 MHz */
+  72:../src/main.c **** 	SYSTEM.SCKCR.LONG = 0x10001111;
+ 104                             		.loc 1 72 2
+ 105 00a4 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 106                             		.loc 1 72 20
+ 107 00a9 F9 52 08 11 11 00 10    		mov.L	#0x10001111, 32[r5]
+  73:../src/main.c **** 	while (SYSTEM.SCKCR.LONG != 0x10001111);
+ 108                             		.loc 1 73 8
+ 109 00b0 03                      		nop
+ 110                             	.L5:
+ 111                             		.loc 1 73 9 discriminator 1
+ 112 00b1 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 113                             		.loc 1 73 21 discriminator 1
+ 114 00b6 AA 55                   		mov.L	32[r5], r5
+ 115                             		.loc 1 73 8 discriminator 1
+ 116 00b8 74 05 11 11 00 10       		cmp	#0x10001111, r5
+ 117 00be 21 F3                   		bne	.L5
+  74:../src/main.c **** 	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
+ 118                             		.loc 1 74 2
+ 119 00c0 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 120                             		.loc 1 74 21
+ 121 00c5 3D D2 31                		mov.W	#49, 36[r5]
+  75:../src/main.c **** 	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
+ 122                             		.loc 1 75 2
+ 123 00c8 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 124                             		.loc 1 75 21
+ 125 00cd F9 54 30 01             		mov.B	#1, 48[r5]
+  76:../src/main.c **** 
+  77:../src/main.c **** 	// select clock source
+  78:../src/main.c **** 	SYSTEM.SCKCR3.WORD = 0x0400;
+ 126                             		.loc 1 78 2
+ 127 00d1 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 128                             		.loc 1 78 21
+ 129 00d6 F9 59 13 00 04          		mov.W	#0x400, 38[r5]
+  79:../src/main.c **** 	while (SYSTEM.SCKCR3.WORD != 0x0400);
+ 130                             		.loc 1 79 8
+ 131 00db 03                      		nop
+ 132                             	.L6:
+ 133                             		.loc 1 79 9 discriminator 1
+ 134 00dc FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 135                             		.loc 1 79 22 discriminator 1
+ 136 00e1 9C DD                   		mov.W	38[r5], r5
+ 137                             		.loc 1 79 8 discriminator 1
+ 138 00e3 5F 55                   		movu.W	r5, r5
+ 139 00e5 76 05 00 04             		cmp	#0x400, r5
+ 140 00e9 21 F3                   		bne	.L6
   80:../src/main.c **** 
-  81:../src/main.c **** 
-  82:../src/main.c **** /***************************************************************/
-  83:../src/main.c **** /*		UART Pin												*/
-  84:../src/main.c **** /***************************************************************/
-  85:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA50B;
- 147                             		.loc 1 85 2
- 148 00fb FB 5E 00 00 08          		mov.L	#0x80000, r5
- 149                             		.loc 1 85 19
- 150 0100 FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  81:../src/main.c **** 	// LOCO stop
+  82:../src/main.c **** 	SYSTEM.LOCOCR.BYTE = 0x01;
+ 141                             		.loc 1 82 2
+ 142 00eb FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 143                             		.loc 1 82 21
+ 144 00f0 F9 54 34 01             		mov.B	#1, 52[r5]
+  83:../src/main.c **** 
+  84:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA500;
+ 145                             		.loc 1 84 2
+ 146 00f4 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 147                             		.loc 1 84 19
+ 148 00f9 FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+  85:../src/main.c **** 
   86:../src/main.c **** 
-  87:../src/main.c **** 	MPC.PWPR.BIT.B0WI = 0;
- 151                             		.loc 1 87 2
- 152 0106 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
- 153                             		.loc 1 87 20
- 154 010b 8F CD                   		mov.B	31[r4], r5
- 155 010d 7A 75                   		bclr	#7, r5
- 156 010f 87 CD                   		mov.B	r5, 31[r4]
-  88:../src/main.c **** 	MPC.PWPR.BIT.PFSWE = 1;
- 157                             		.loc 1 88 2
- 158 0111 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
- 159                             		.loc 1 88 21
- 160 0116 8F CD                   		mov.B	31[r4], r5
- 161 0118 78 65                   		bset	#6, r5
- 162 011a 87 CD                   		mov.B	r5, 31[r4]
-  89:../src/main.c **** 
-  90:../src/main.c **** 	/* Set RXD7 pin */
-  91:../src/main.c **** 	MPC.P92PFS.BYTE = 0x0AU;
- 163                             		.loc 1 91 2
- 164 011c FB 5E 00 C1 08          		mov.L	#0x8c100, r5
- 165                             		.loc 1 91 18
- 166 0121 F9 54 8A 0A             		mov.B	#10, 138[r5]
-  92:../src/main.c **** 	PORT9.PMR.BYTE |= 0x04U;
- 167                             		.loc 1 92 17
- 168 0125 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 169 012a CD 54 60                		mov.B	96[r5], r4
- 170 012d FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 171 0132 65 44                   		or	#4, r4
- 172 0134 C7 54 60                		mov.B	r4, 96[r5]
-  93:../src/main.c **** 
-  94:../src/main.c **** 	/* Set TXD7 pin */
-  95:../src/main.c **** 	PORT9.PODR.BYTE |= 0x01U;
- 173                             		.loc 1 95 18
- 174 0137 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 175 013c CD 54 20                		mov.B	32[r5], r4
- 176 013f FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 177 0144 65 14                   		or	#1, r4
- 178 0146 C7 54 20                		mov.B	r4, 32[r5]
-  96:../src/main.c **** 	MPC.P90PFS.BYTE = 0x0AU;
- 179                             		.loc 1 96 2
- 180 0149 FB 5E 00 C1 08          		mov.L	#0x8c100, r5
- 181                             		.loc 1 96 18
- 182 014e F9 54 88 0A             		mov.B	#10, 136[r5]
-  97:../src/main.c **** 	PORT9.PDR.BYTE |= 0x01U;
- 183                             		.loc 1 97 17
- 184 0152 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 185 0157 CC 54                   		mov.B	[r5], r4
- 186 0159 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
- 187 015e 65 14                   		or	#1, r4
- 188 0160 C3 54                   		mov.B	r4, [r5]
+  87:../src/main.c **** /***************************************************************/
+  88:../src/main.c **** /*		UART Pin												*/
+  89:../src/main.c **** /***************************************************************/
+  90:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA50B;
+ 149                             		.loc 1 90 2
+ 150 00ff FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 151                             		.loc 1 90 19
+ 152 0104 FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  91:../src/main.c **** 
+  92:../src/main.c **** 	MPC.PWPR.BIT.B0WI = 0;
+ 153                             		.loc 1 92 2
+ 154 010a FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 155                             		.loc 1 92 20
+ 156 010f 8F CD                   		mov.B	31[r4], r5
+ 157 0111 7A 75                   		bclr	#7, r5
+ 158 0113 87 CD                   		mov.B	r5, 31[r4]
+  93:../src/main.c **** 	MPC.PWPR.BIT.PFSWE = 1;
+ 159                             		.loc 1 93 2
+ 160 0115 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 161                             		.loc 1 93 21
+ 162 011a 8F CD                   		mov.B	31[r4], r5
+ 163 011c 78 65                   		bset	#6, r5
+ 164 011e 87 CD                   		mov.B	r5, 31[r4]
+  94:../src/main.c **** 
+  95:../src/main.c **** 	/* Set RXD7 pin */
+  96:../src/main.c **** 	MPC.P92PFS.BYTE = 0x0AU;
+ 165                             		.loc 1 96 2
+ 166 0120 FB 5E 00 C1 08          		mov.L	#0x8c100, r5
+ 167                             		.loc 1 96 18
+ 168 0125 F9 54 8A 0A             		mov.B	#10, 138[r5]
+  97:../src/main.c **** 	PORT9.PMR.BYTE |= 0x04U;
+ 169                             		.loc 1 97 17
+ 170 0129 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 171 012e CD 54 60                		mov.B	96[r5], r4
+ 172 0131 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 173 0136 65 44                   		or	#4, r4
+ 174 0138 C7 54 60                		mov.B	r4, 96[r5]
   98:../src/main.c **** 
-  99:../src/main.c **** 	MPC.PWPR.BIT.PFSWE = 1;
- 189                             		.loc 1 99 2
- 190 0162 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
- 191                             		.loc 1 99 21
- 192 0167 8F CD                   		mov.B	31[r4], r5
- 193 0169 78 65                   		bset	#6, r5
- 194 016b 87 CD                   		mov.B	r5, 31[r4]
- 100:../src/main.c **** 	MPC.PWPR.BIT.B0WI = 0;
- 195                             		.loc 1 100 2
- 196 016d FB 4E 00 C1 08          		mov.L	#0x8c100, r4
- 197                             		.loc 1 100 20
- 198 0172 8F CD                   		mov.B	31[r4], r5
- 199 0174 7A 75                   		bclr	#7, r5
- 200 0176 87 CD                   		mov.B	r5, 31[r4]
- 101:../src/main.c **** 
- 102:../src/main.c **** 	MSTP(SCI7) = 0;
- 201                             		.loc 1 102 2
- 202 0178 FB 4E 00 00 08          		mov.L	#0x80000, r4
- 203                             		.loc 1 102 13
- 204 017d A9 4D                   		mov.L	20[r4], r5
- 205 017f 7B 85                   		bclr	#24, r5
- 206 0181 A1 4D                   		mov.L	r5, 20[r4]
- 103:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA500;
- 207                             		.loc 1 103 2
- 208 0183 FB 5E 00 00 08          		mov.L	#0x80000, r5
- 209                             		.loc 1 103 19
- 210 0188 FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
- 104:../src/main.c **** 
- 105:../src/main.c **** 
- 106:../src/main.c **** /***************************************************************/
- 107:../src/main.c **** /*		UART Configuration										*/
- 108:../src/main.c **** /***************************************************************/
- 109:../src/main.c **** 	IPR(SCI7,RXI7) = _IPR_LEVEL10;
- 211                             		.loc 1 109 2
- 212 018e FB 4E 00 70 08          		mov.L	#0x87000, r4
- 213                             		.loc 1 109 17
- 214 0193 CE 45 62 03             		mov.B	866[r4], r5
- 215 0197 75 25 F0                		and	#-16, r5
- 216 019a 65 A5                   		or	#10, r5
- 217 019c CB 45 62 03             		mov.B	r5, 866[r4]
- 110:../src/main.c **** 	IPR(SCI7,TXI7) = _IPR_LEVEL10;
- 218                             		.loc 1 110 2
- 219 01a0 FB 4E 00 70 08          		mov.L	#0x87000, r4
- 220                             		.loc 1 110 17
- 221 01a5 CE 45 63 03             		mov.B	867[r4], r5
- 222 01a9 75 25 F0                		and	#-16, r5
- 223 01ac 65 A5                   		or	#10, r5
- 224 01ae CB 45 63 03             		mov.B	r5, 867[r4]
- 111:../src/main.c **** 
- 112:../src/main.c **** 	SCI7.SCR.BYTE = 0x00u;	/* Clear the control register */
- 225                             		.loc 1 112 2
- 226 01b2 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 227                             		.loc 1 112 16
- 228 01b7 3C 52 00                		mov.B	#0, 2[r5]
- 113:../src/main.c **** 	SCI7.SCR.BYTE = 0x00u;	/* Set clock enable */
- 229                             		.loc 1 113 2
- 230 01ba FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 231                             		.loc 1 113 16
- 232 01bf 3C 52 00                		mov.B	#0, 2[r5]
- 114:../src/main.c **** 
- 115:../src/main.c **** 	/* Clear the SIMR1.IICM, SPMR.CKPH, and CKPOL bit, and set SPMR */
- 116:../src/main.c **** 	SCI7.SIMR1.BIT.IICM = 0u;
- 233                             		.loc 1 116 2
- 234 01c2 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
- 235                             		.loc 1 116 22
- 236 01c7 8A 4D                   		mov.B	9[r4], r5
- 237 01c9 7A 05                   		bclr	#0, r5
- 238 01cb 82 4D                   		mov.B	r5, 9[r4]
- 117:../src/main.c **** 	SCI7.SPMR.BYTE = 0x00u;
- 239                             		.loc 1 117 2
- 240 01cd FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 241                             		.loc 1 117 17
- 242 01d2 3C 5D 00                		mov.B	#0, 13[r5]
- 118:../src/main.c **** 
- 119:../src/main.c **** 	/* Set control registers */
- 120:../src/main.c **** 	SCI7.SMR.BYTE = 0x00u;
- 243                             		.loc 1 120 2
- 244 01d5 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 245                             		.loc 1 120 16
- 246 01da F8 54 00                		mov.B	#0, [r5]
- 121:../src/main.c **** 	SCI7.SMR.BIT.CKS = 2u;	// pclk / 16
- 247                             		.loc 1 121 2
- 248 01dd FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
- 249                             		.loc 1 121 19
- 250 01e2 CC 45                   		mov.B	[r4], r5
- 251 01e4 75 25 FC                		and	#-4, r5
- 252 01e7 65 25                   		or	#2, r5
- 253 01e9 C3 45                   		mov.B	r5, [r4]
- 122:../src/main.c **** 	SCI7.SCMR.BYTE = 0xF2u;
- 254                             		.loc 1 122 2
- 255 01eb FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 256                             		.loc 1 122 17
- 257 01f0 F9 54 06 F2             		mov.B	#-14, 6[r5]
- 123:../src/main.c **** 	SCI7.SEMR.BYTE = 0x00u;
- 258                             		.loc 1 123 2
- 259 01f4 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 260                             		.loc 1 123 17
- 261 01f9 3C 57 00                		mov.B	#0, 7[r5]
- 124:../src/main.c **** 
- 125:../src/main.c **** 	/* Set bit rate */
- 126:../src/main.c **** 	SCI7.BRR = 11u;	// 9600 bps
- 262                             		.loc 1 126 2
- 263 01fc FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
- 264                             		.loc 1 126 11
- 265 0201 3C 51 0B                		mov.B	#11, 1[r5]
- 127:../src/main.c **** 
- 128:../src/main.c **** 
- 129:../src/main.c **** /***************************************************************/
- 130:../src/main.c **** /*		UART Start											*/
- 131:../src/main.c **** /***************************************************************/
- 132:../src/main.c **** 	IR(SCI7,TXI7) = 0u;
- 266                             		.loc 1 132 2
- 267 0204 FB 4E 00 70 08          		mov.L	#0x87000, r4
- 268                             		.loc 1 132 16
- 269 0209 CD 45 63                		mov.B	99[r4], r5
- 270 020c 7A 05                   		bclr	#0, r5
- 271 020e C7 45 63                		mov.B	r5, 99[r4]
- 133:../src/main.c **** 	IR(SCI7,RXI7) = 0u;
- 272                             		.loc 1 133 2
- 273 0211 FB 4E 00 70 08          		mov.L	#0x87000, r4
- 274                             		.loc 1 133 16
- 275 0216 CD 45 62                		mov.B	98[r4], r5
- 276 0219 7A 05                   		bclr	#0, r5
- 277 021b C7 45 62                		mov.B	r5, 98[r4]
- 134:../src/main.c **** 
- 135:../src/main.c **** 	IEN(SCI7,TXI7) = 1u;
- 278                             		.loc 1 135 2
- 279 021e FB 4E 00 70 08          		mov.L	#0x87000, r4
- 280                             		.loc 1 135 17
- 281 0223 CE 45 0C 02             		mov.B	524[r4], r5
- 282 0227 78 35                   		bset	#3, r5
- 283 0229 CB 45 0C 02             		mov.B	r5, 524[r4]
- 136:../src/main.c **** 	ICU.GENBL0.BIT.EN14 = 1u;	// TEI7 (Transmit Error Interrupt)
- 284                             		.loc 1 136 2
- 285 022d FB 4E 00 70 08          		mov.L	#0x87000, r4
- 286                             		.loc 1 136 22
- 287 0232 EE 45 9C 01             		mov.L	1648[r4], r5
- 288 0236 78 E5                   		bset	#14, r5
- 289 0238 EB 45 9C 01             		mov.L	r5, 1648[r4]
- 137:../src/main.c **** 	IEN(SCI7,RXI7) = 1u;
- 290                             		.loc 1 137 2
- 291 023c FB 4E 00 70 08          		mov.L	#0x87000, r4
- 292                             		.loc 1 137 17
- 293 0241 CE 45 0C 02             		mov.B	524[r4], r5
- 294 0245 78 25                   		bset	#2, r5
- 295 0247 CB 45 0C 02             		mov.B	r5, 524[r4]
- 138:../src/main.c **** 	ICU.GENBL0.BIT.EN15 = 1u;	// ERI7 (Error Recieve Interrupt)
- 296                             		.loc 1 138 2
- 297 024b FB 4E 00 70 08          		mov.L	#0x87000, r4
- 298                             		.loc 1 138 22
- 299 0250 EE 45 9C 01             		mov.L	1648[r4], r5
- 300 0254 78 F5                   		bset	#15, r5
- 301 0256 EB 45 9C 01             		mov.L	r5, 1648[r4]
+  99:../src/main.c **** 	/* Set TXD7 pin */
+ 100:../src/main.c **** 	PORT9.PODR.BYTE |= 0x01U;
+ 175                             		.loc 1 100 18
+ 176 013b FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 177 0140 CD 54 20                		mov.B	32[r5], r4
+ 178 0143 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 179 0148 65 14                   		or	#1, r4
+ 180 014a C7 54 20                		mov.B	r4, 32[r5]
+ 101:../src/main.c **** 	MPC.P90PFS.BYTE = 0x0AU;
+ 181                             		.loc 1 101 2
+ 182 014d FB 5E 00 C1 08          		mov.L	#0x8c100, r5
+ 183                             		.loc 1 101 18
+ 184 0152 F9 54 88 0A             		mov.B	#10, 136[r5]
+ 102:../src/main.c **** 	PORT9.PDR.BYTE |= 0x01U;
+ 185                             		.loc 1 102 17
+ 186 0156 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 187 015b CC 54                   		mov.B	[r5], r4
+ 188 015d FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 189 0162 65 14                   		or	#1, r4
+ 190 0164 C3 54                   		mov.B	r4, [r5]
+ 103:../src/main.c **** 
+ 104:../src/main.c **** 	MPC.PWPR.BIT.PFSWE = 1;
+ 191                             		.loc 1 104 2
+ 192 0166 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 193                             		.loc 1 104 21
+ 194 016b 8F CD                   		mov.B	31[r4], r5
+ 195 016d 78 65                   		bset	#6, r5
+ 196 016f 87 CD                   		mov.B	r5, 31[r4]
+ 105:../src/main.c **** 	MPC.PWPR.BIT.B0WI = 0;
+ 197                             		.loc 1 105 2
+ 198 0171 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 199                             		.loc 1 105 20
+ 200 0176 8F CD                   		mov.B	31[r4], r5
+ 201 0178 7A 75                   		bclr	#7, r5
+ 202 017a 87 CD                   		mov.B	r5, 31[r4]
+ 106:../src/main.c **** 
+ 107:../src/main.c **** 	MSTP(SCI7) = 0;
+ 203                             		.loc 1 107 2
+ 204 017c FB 4E 00 00 08          		mov.L	#0x80000, r4
+ 205                             		.loc 1 107 13
+ 206 0181 A9 4D                   		mov.L	20[r4], r5
+ 207 0183 7B 85                   		bclr	#24, r5
+ 208 0185 A1 4D                   		mov.L	r5, 20[r4]
+ 108:../src/main.c **** 	SYSTEM.PRCR.WORD = 0xA500;
+ 209                             		.loc 1 108 2
+ 210 0187 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 211                             		.loc 1 108 19
+ 212 018c FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+ 109:../src/main.c **** 
+ 110:../src/main.c **** 
+ 111:../src/main.c **** /***************************************************************/
+ 112:../src/main.c **** /*		UART Configuration										*/
+ 113:../src/main.c **** /***************************************************************/
+ 114:../src/main.c **** 	IPR(SCI7,RXI7) = _IPR_LEVEL10;
+ 213                             		.loc 1 114 2
+ 214 0192 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 215                             		.loc 1 114 17
+ 216 0197 CE 45 62 03             		mov.B	866[r4], r5
+ 217 019b 75 25 F0                		and	#-16, r5
+ 218 019e 65 A5                   		or	#10, r5
+ 219 01a0 CB 45 62 03             		mov.B	r5, 866[r4]
+ 115:../src/main.c **** 	IPR(SCI7,TXI7) = _IPR_LEVEL10;
+ 220                             		.loc 1 115 2
+ 221 01a4 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 222                             		.loc 1 115 17
+ 223 01a9 CE 45 63 03             		mov.B	867[r4], r5
+ 224 01ad 75 25 F0                		and	#-16, r5
+ 225 01b0 65 A5                   		or	#10, r5
+ 226 01b2 CB 45 63 03             		mov.B	r5, 867[r4]
+ 116:../src/main.c **** 
+ 117:../src/main.c **** 	SCI7.SCR.BYTE = 0x00u;	/* Clear the control register */
+ 227                             		.loc 1 117 2
+ 228 01b6 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 229                             		.loc 1 117 16
+ 230 01bb 3C 52 00                		mov.B	#0, 2[r5]
+ 118:../src/main.c **** 	SCI7.SCR.BYTE = 0x00u;	/* Set clock enable */
+ 231                             		.loc 1 118 2
+ 232 01be FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 233                             		.loc 1 118 16
+ 234 01c3 3C 52 00                		mov.B	#0, 2[r5]
+ 119:../src/main.c **** 
+ 120:../src/main.c **** 	/* Clear the SIMR1.IICM, SPMR.CKPH, and CKPOL bit, and set SPMR */
+ 121:../src/main.c **** 	SCI7.SIMR1.BIT.IICM = 0u;
+ 235                             		.loc 1 121 2
+ 236 01c6 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+ 237                             		.loc 1 121 22
+ 238 01cb 8A 4D                   		mov.B	9[r4], r5
+ 239 01cd 7A 05                   		bclr	#0, r5
+ 240 01cf 82 4D                   		mov.B	r5, 9[r4]
+ 122:../src/main.c **** 	SCI7.SPMR.BYTE = 0x00u;
+ 241                             		.loc 1 122 2
+ 242 01d1 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 243                             		.loc 1 122 17
+ 244 01d6 3C 5D 00                		mov.B	#0, 13[r5]
+ 123:../src/main.c **** 
+ 124:../src/main.c **** 	/* Set control registers */
+ 125:../src/main.c **** 	SCI7.SMR.BYTE = 0x00u;
+ 245                             		.loc 1 125 2
+ 246 01d9 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 247                             		.loc 1 125 16
+ 248 01de F8 54 00                		mov.B	#0, [r5]
+ 126:../src/main.c **** 	SCI7.SMR.BIT.CKS = 2u;	// pclk / 16
+ 249                             		.loc 1 126 2
+ 250 01e1 FB 4E E0 A0 08          		mov.L	#0x8a0e0, r4
+ 251                             		.loc 1 126 19
+ 252 01e6 CC 45                   		mov.B	[r4], r5
+ 253 01e8 75 25 FC                		and	#-4, r5
+ 254 01eb 65 25                   		or	#2, r5
+ 255 01ed C3 45                   		mov.B	r5, [r4]
+ 127:../src/main.c **** 	SCI7.SCMR.BYTE = 0xF2u;
+ 256                             		.loc 1 127 2
+ 257 01ef FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 258                             		.loc 1 127 17
+ 259 01f4 F9 54 06 F2             		mov.B	#-14, 6[r5]
+ 128:../src/main.c **** 	SCI7.SEMR.BYTE = 0x00u;
+ 260                             		.loc 1 128 2
+ 261 01f8 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 262                             		.loc 1 128 17
+ 263 01fd 3C 57 00                		mov.B	#0, 7[r5]
+ 129:../src/main.c **** 
+ 130:../src/main.c **** 	/* Set bit rate */
+ 131:../src/main.c **** 	SCI7.BRR = 11u;	// 9600 bps
+ 264                             		.loc 1 131 2
+ 265 0200 FB 5E E0 A0 08          		mov.L	#0x8a0e0, r5
+ 266                             		.loc 1 131 11
+ 267 0205 3C 51 0B                		mov.B	#11, 1[r5]
+ 132:../src/main.c **** 
+ 133:../src/main.c **** 
+ 134:../src/main.c **** /***************************************************************/
+ 135:../src/main.c **** /*		UART Start											*/
+ 136:../src/main.c **** /***************************************************************/
+ 137:../src/main.c **** 	IR(SCI7,TXI7) = 0u;
+ 268                             		.loc 1 137 2
+ 269 0208 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 270                             		.loc 1 137 16
+ 271 020d CD 45 63                		mov.B	99[r4], r5
+ 272 0210 7A 05                   		bclr	#0, r5
+ 273 0212 C7 45 63                		mov.B	r5, 99[r4]
+ 138:../src/main.c **** 	IR(SCI7,RXI7) = 0u;
+ 274                             		.loc 1 138 2
+ 275 0215 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 276                             		.loc 1 138 16
+ 277 021a CD 45 62                		mov.B	98[r4], r5
+ 278 021d 7A 05                   		bclr	#0, r5
+ 279 021f C7 45 62                		mov.B	r5, 98[r4]
  139:../src/main.c **** 
- 140:../src/main.c **** 
- 141:../src/main.c **** /***************************************************************/
- 142:../src/main.c **** /*		UART Send												*/
- 143:../src/main.c **** /***************************************************************/
- 144:../src/main.c **** 	SCI7_Serial_Send(buf, num);
- 302                             		.loc 1 144 2
- 303 025a DC A2                   		mov.W	[r10], r2
- 304 025c ED A1 01                		mov.L	4[r10], r1
- 305 025f 05 00 00 00             		bsr	_SCI7_Serial_Send
- 306                             	.L7:
+ 140:../src/main.c **** 	IEN(SCI7,TXI7) = 1u;
+ 280                             		.loc 1 140 2
+ 281 0222 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 282                             		.loc 1 140 17
+ 283 0227 CE 45 0C 02             		mov.B	524[r4], r5
+ 284 022b 78 35                   		bset	#3, r5
+ 285 022d CB 45 0C 02             		mov.B	r5, 524[r4]
+ 141:../src/main.c **** 	ICU.GENBL0.BIT.EN14 = 1u;	// TEI7 (Transmit Error Interrupt)
+ 286                             		.loc 1 141 2
+ 287 0231 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 288                             		.loc 1 141 22
+ 289 0236 EE 45 9C 01             		mov.L	1648[r4], r5
+ 290 023a 78 E5                   		bset	#14, r5
+ 291 023c EB 45 9C 01             		mov.L	r5, 1648[r4]
+ 142:../src/main.c **** 	IEN(SCI7,RXI7) = 1u;
+ 292                             		.loc 1 142 2
+ 293 0240 FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 294                             		.loc 1 142 17
+ 295 0245 CE 45 0C 02             		mov.B	524[r4], r5
+ 296 0249 78 25                   		bset	#2, r5
+ 297 024b CB 45 0C 02             		mov.B	r5, 524[r4]
+ 143:../src/main.c **** 	ICU.GENBL0.BIT.EN15 = 1u;	// ERI7 (Error Recieve Interrupt)
+ 298                             		.loc 1 143 2
+ 299 024f FB 4E 00 70 08          		mov.L	#0x87000, r4
+ 300                             		.loc 1 143 22
+ 301 0254 EE 45 9C 01             		mov.L	1648[r4], r5
+ 302 0258 78 F5                   		bset	#15, r5
+ 303 025a EB 45 9C 01             		mov.L	r5, 1648[r4]
+ 144:../src/main.c **** 
  145:../src/main.c **** 
- 146:../src/main.c **** 
- 147:../src/main.c **** 	while(1) {
- 307                             		.loc 1 147 7 discriminator 1
- 308 0263 2E 00                   		bra	.L7
- 309                             	.LFE0:
- 348                             	.Letext0:
- 349                             		.file 2 "C:/Users/sata/develop/Renesas/e2_kaede/KAEDE_GCC/generate/iodefine.h"
- 350                             		.file 3 "../src/common.h"
+ 146:../src/main.c **** /***************************************************************/
+ 147:../src/main.c **** /*		UART Send												*/
+ 148:../src/main.c **** /***************************************************************/
+ 149:../src/main.c **** 	SCI7_Serial_Send(buf, num);
+ 304                             		.loc 1 149 2
+ 305 025e DD A5 02                		mov.W	4[r10], r5
+ 306 0261 DF 52                   		mov.W	r5, r2
+ 307 0263 EC A1                   		mov.L	[r10], r1
+ 308 0265 05 00 00 00             		bsr	_SCI7_Serial_Send
+ 150:../src/main.c **** 
+ 151:../src/main.c **** 
+ 152:../src/main.c **** 	led_create();
+ 309                             		.loc 1 152 2
+ 310 0269 05 00 00 00             		bsr	_led_create
+ 153:../src/main.c **** 	init_CMT0();
+ 311                             		.loc 1 153 2
+ 312 026d 05 00 00 00             		bsr	_init_CMT0
+ 313                             	.L7:
+ 154:../src/main.c **** 
+ 155:../src/main.c **** 	while(1) {
+ 156:../src/main.c **** #if 0
+ 157:../src/main.c **** 		i = 0xfffff;
+ 158:../src/main.c **** 		while (i)	i--;
+ 159:../src/main.c **** 		led_on(LED1);
+ 160:../src/main.c **** 
+ 161:../src/main.c **** 		i = 0xfffff;
+ 162:../src/main.c **** 		while (i)	i--;
+ 163:../src/main.c **** 		led_on(LED2);
+ 164:../src/main.c **** 
+ 165:../src/main.c **** 		i = 0xfffff;
+ 166:../src/main.c **** 		while (i)	i--;
+ 167:../src/main.c **** 		led_on(LED3);
+ 168:../src/main.c **** 
+ 169:../src/main.c **** 		i = 0xfffff;
+ 170:../src/main.c **** 		while (i)	i--;
+ 171:../src/main.c **** 		led_on(LED4);
+ 172:../src/main.c **** 
+ 173:../src/main.c **** 		i = 0xfffff;
+ 174:../src/main.c **** 		while (i)	i--;
+ 175:../src/main.c **** 		led_stop();
+ 176:../src/main.c **** #else
+ 177:../src/main.c **** 		ms_wait(50);
+ 314                             		.loc 1 177 3 discriminator 1
+ 315 0271 75 41 32                		mov.L	#50, r1
+ 316 0274 05 00 00 00             		bsr	_ms_wait
+ 178:../src/main.c **** 		led_on(LED1);
+ 317                             		.loc 1 178 3 discriminator 1
+ 318 0278 66 01                   		mov.L	#0, r1
+ 319 027a 05 00 00 00             		bsr	_led_on
+ 179:../src/main.c **** 		ms_wait(50);
+ 320                             		.loc 1 179 3 discriminator 1
+ 321 027e 75 41 32                		mov.L	#50, r1
+ 322 0281 05 00 00 00             		bsr	_ms_wait
+ 180:../src/main.c **** 		led_on(LED2);
+ 323                             		.loc 1 180 3 discriminator 1
+ 324 0285 66 11                   		mov.L	#1, r1
+ 325 0287 05 00 00 00             		bsr	_led_on
+ 181:../src/main.c **** 		ms_wait(50);
+ 326                             		.loc 1 181 3 discriminator 1
+ 327 028b 75 41 32                		mov.L	#50, r1
+ 328 028e 05 00 00 00             		bsr	_ms_wait
+ 182:../src/main.c **** 		led_on(LED3);
+ 329                             		.loc 1 182 3 discriminator 1
+ 330 0292 66 21                   		mov.L	#2, r1
+ 331 0294 05 00 00 00             		bsr	_led_on
+ 183:../src/main.c **** 		ms_wait(50);
+ 332                             		.loc 1 183 3 discriminator 1
+ 333 0298 75 41 32                		mov.L	#50, r1
+ 334 029b 05 00 00 00             		bsr	_ms_wait
+ 184:../src/main.c **** 		led_on(LED4);
+ 335                             		.loc 1 184 3 discriminator 1
+ 336 029f 66 31                   		mov.L	#3, r1
+ 337 02a1 05 00 00 00             		bsr	_led_on
+ 185:../src/main.c **** 		ms_wait(50);
+ 338                             		.loc 1 185 3 discriminator 1
+ 339 02a5 75 41 32                		mov.L	#50, r1
+ 340 02a8 05 00 00 00             		bsr	_ms_wait
+ 186:../src/main.c **** 		led_stop();
+ 341                             		.loc 1 186 3 discriminator 1
+ 342 02ac 05 00 00 00             		bsr	_led_stop
+ 177:../src/main.c **** 		led_on(LED1);
+ 343                             		.loc 1 177 3 discriminator 1
+ 344 02b0 2E C1                   		bra	.L7
+ 345                             	.LFE0:
+ 384                             	.Letext0:
+ 385                             		.file 2 "C:/Users/sata/develop/Renesas/e2_kaede/KAEDE_GCC/generate/iodefine.h"
+ 386                             		.file 3 "../src/common.h"
+ 387                             		.file 4 "../src/./peripheral/GPIO.h"
