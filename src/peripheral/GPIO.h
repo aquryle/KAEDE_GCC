@@ -18,7 +18,6 @@ typedef enum {
 } LED_NUM;
 
 
-void led_create(void);
 void led_stop(void);
 void led_on(LED_NUM num);
 void led_off(LED_NUM num);

@@ -27,25 +27,382 @@
   12                             	.LCFI0:
   13 0002 EF 0A                   		mov.L	r0, r10
   14                             	.LCFI1:
-  17:../generate/hwinit.c **** /*
-  18:../generate/hwinit.c ****  BSC.CS0MOD.WORD = 0x1234;
-  19:../generate/hwinit.c ****  BSC.CS7CNT.WORD = 0x5678;
-  20:../generate/hwinit.c ****   
-  21:../generate/hwinit.c ****  SCI0.SCR.BIT.TE  = 0;
-  22:../generate/hwinit.c ****  SCI0.SCR.BIT.RE  = 0;
-  23:../generate/hwinit.c ****  SCI0.SCR.BIT.TE  = 1;
-  24:../generate/hwinit.c ****  SCI2.SSR.BIT.PER = 0;
-  25:../generate/hwinit.c **** 
-  26:../generate/hwinit.c ****  TMR0.TCR.BYTE = 0x12;
-  27:../generate/hwinit.c ****  TMR1.TCR.BYTE = 0x12;
-  28:../generate/hwinit.c ****  TMR2.TCR.BYTE = 0x12;
-  29:../generate/hwinit.c ****  
-  30:../generate/hwinit.c ****  P0.DDR.BYTE = 0x12;
-  31:../generate/hwinit.c ****  P1.DDR.BYTE = 0x12;
-  32:../generate/hwinit.c **** */
-  33:../generate/hwinit.c **** }
-  15                             		.loc 1 33 1
-  16 0004 03                      		nop
-  17 0005 3F AA 01                		rtsd	#4, r10-r10
-  18                             	.LFE0:
-  56                             	.Letext0:
+  17:../generate/hwinit.c **** /****************************************************************/
+  18:../generate/hwinit.c **** /*		System Clock											*/
+  19:../generate/hwinit.c **** /****************************************************************/
+  20:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA50Bu;
+  15                             		.loc 1 20 2
+  16 0004 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  17                             		.loc 1 20 19
+  18 0009 FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  21:../generate/hwinit.c **** 
+  22:../generate/hwinit.c **** 	// port
+  23:../generate/hwinit.c **** 	PORT3.PDR.BYTE = 0u;
+  19                             		.loc 1 23 2
+  20 000f FB 5E 03 C0 08          		mov.L	#0x8c003, r5
+  21                             		.loc 1 23 17
+  22 0014 F8 54 00                		mov.B	#0, [r5]
+  24:../generate/hwinit.c **** 
+  25:../generate/hwinit.c **** 	// main clock start
+  26:../generate/hwinit.c **** 	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;
+  23                             		.loc 1 26 2
+  24 0017 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  25                             		.loc 1 26 23
+  26 001c F9 54 A2 0F             		mov.B	#15, 162[r5]
+  27:../generate/hwinit.c **** 	SYSTEM.MOSCCR.BYTE = 0x00u;
+  27                             		.loc 1 27 2
+  28 0020 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  29                             		.loc 1 27 21
+  30 0025 F9 54 32 00             		mov.B	#0, 50[r5]
+  28:../generate/hwinit.c **** 	while (0x00u != SYSTEM.MOSCCR.BYTE);
+  31                             		.loc 1 28 8
+  32 0029 03                      		nop
+  33                             	.L2:
+  34                             		.loc 1 28 18 discriminator 1
+  35 002a FB 5E 00 00 08          		mov.L	#0x80000, r5
+  36                             		.loc 1 28 31 discriminator 1
+  37 002f CD 55 32                		mov.B	50[r5], r5
+  38                             		.loc 1 28 8 discriminator 1
+  39 0032 5B 55                   		movu.B	r5, r5
+  40 0034 61 05                   		cmp	#0, r5
+  41 0036 21 F4                   		bne	.L2
+  29:../generate/hwinit.c **** 	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);
+  42                             		.loc 1 29 8
+  43 0038 03                      		nop
+  44                             	.L3:
+  45                             		.loc 1 29 15 discriminator 1
+  46 0039 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  47                             		.loc 1 29 34 discriminator 1
+  48 003e CD 55 3C                		mov.B	60[r5], r5
+  49 0041 64 15                   		and	#1, r5
+  50                             		.loc 1 29 8 discriminator 1
+  51 0043 5B 55                   		movu.B	r5, r5
+  52 0045 61 15                   		cmp	#1, r5
+  53 0047 21 F2                   		bne	.L3
+  30:../generate/hwinit.c **** 
+  31:../generate/hwinit.c **** 	// PLL
+  32:../generate/hwinit.c **** 	SYSTEM.PLLCR.BIT.STC = 0x13;	// *10
+  54                             		.loc 1 32 2
+  55 0049 FB 4E 00 00 08          		mov.L	#0x80000, r4
+  56                             		.loc 1 32 23
+  57 004e 9D 45                   		mov.W	40[r4], r5
+  58 0050 76 25 FF C0             		and	#-16129, r5
+  59 0054 76 35 00 13             		or	#0x1300, r5
+  60 0058 95 45                   		mov.W	r5, 40[r4]
+  33:../generate/hwinit.c **** 	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;	// PLL clock source: main clock
+  61                             		.loc 1 33 2
+  62 005a FB 4E 00 00 08          		mov.L	#0x80000, r4
+  63                             		.loc 1 33 29
+  64 005f 9D 45                   		mov.W	40[r4], r5
+  65 0061 7A 45                   		bclr	#4, r5
+  66 0063 95 45                   		mov.W	r5, 40[r4]
+  34:../generate/hwinit.c **** 	SYSTEM.PLLCR.BIT.PLIDIV = 0;	// /1
+  67                             		.loc 1 34 2
+  68 0065 FB 4E 00 00 08          		mov.L	#0x80000, r4
+  69                             		.loc 1 34 26
+  70 006a 9D 45                   		mov.W	40[r4], r5
+  71 006c 75 25 FC                		and	#-4, r5
+  72 006f 95 45                   		mov.W	r5, 40[r4]
+  35:../generate/hwinit.c **** 	SYSTEM.PLLCR2.BIT.PLLEN = 0;	// PLL start
+  73                             		.loc 1 35 2
+  74 0071 FB 4E 00 00 08          		mov.L	#0x80000, r4
+  75                             		.loc 1 35 26
+  76 0076 CD 45 2A                		mov.B	42[r4], r5
+  77 0079 7A 05                   		bclr	#0, r5
+  78 007b C7 45 2A                		mov.B	r5, 42[r4]
+  36:../generate/hwinit.c **** 	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF);
+  79                             		.loc 1 36 8
+  80 007e 03                      		nop
+  81                             	.L4:
+  82                             		.loc 1 36 14 discriminator 1
+  83 007f FB 5E 00 00 08          		mov.L	#0x80000, r5
+  84                             		.loc 1 36 33 discriminator 1
+  85 0084 CD 55 3C                		mov.B	60[r5], r5
+  86 0087 5B 55                   		movu.B	r5, r5
+  87 0089 68 25                   		shlr	#2, r5
+  88 008b 64 15                   		and	#1, r5
+  89                             		.loc 1 36 8 discriminator 1
+  90 008d 5B 55                   		movu.B	r5, r5
+  91 008f 61 15                   		cmp	#1, r5
+  92 0091 21 EE                   		bne	.L4
+  37:../generate/hwinit.c **** 
+  38:../generate/hwinit.c **** 	// division
+  39:../generate/hwinit.c **** 	/*	main clock: 12MHz, PLL: *10
+  40:../generate/hwinit.c **** 		FCLK: 60 MHz	ICLK: 120 MHz	BCLK: 120 MHz
+  41:../generate/hwinit.c **** 		PCLKA: 60 MHz	PCLKB: 60 MHz
+  42:../generate/hwinit.c **** 		PCLKC: 60 MHz	PCLKD: 60 MHz */
+  43:../generate/hwinit.c **** 	SYSTEM.SCKCR.LONG = 0x10001111;
+  93                             		.loc 1 43 2
+  94 0093 FB 5E 00 00 08          		mov.L	#0x80000, r5
+  95                             		.loc 1 43 20
+  96 0098 F9 52 08 11 11 00 10    		mov.L	#0x10001111, 32[r5]
+  44:../generate/hwinit.c **** 	while (SYSTEM.SCKCR.LONG != 0x10001111);
+  97                             		.loc 1 44 8
+  98 009f 03                      		nop
+  99                             	.L5:
+ 100                             		.loc 1 44 9 discriminator 1
+ 101 00a0 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 102                             		.loc 1 44 21 discriminator 1
+ 103 00a5 AA 55                   		mov.L	32[r5], r5
+ 104                             		.loc 1 44 8 discriminator 1
+ 105 00a7 74 05 11 11 00 10       		cmp	#0x10001111, r5
+ 106 00ad 21 F3                   		bne	.L5
+  45:../generate/hwinit.c **** 	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
+ 107                             		.loc 1 45 2
+ 108 00af FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 109                             		.loc 1 45 21
+ 110 00b4 3D D2 31                		mov.W	#49, 36[r5]
+  46:../generate/hwinit.c **** 	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
+ 111                             		.loc 1 46 2
+ 112 00b7 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 113                             		.loc 1 46 21
+ 114 00bc F9 54 30 01             		mov.B	#1, 48[r5]
+  47:../generate/hwinit.c **** 
+  48:../generate/hwinit.c **** 	// select clock source
+  49:../generate/hwinit.c **** 	SYSTEM.SCKCR3.WORD = 0x0400;
+ 115                             		.loc 1 49 2
+ 116 00c0 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 117                             		.loc 1 49 21
+ 118 00c5 F9 59 13 00 04          		mov.W	#0x400, 38[r5]
+  50:../generate/hwinit.c **** 	while (SYSTEM.SCKCR3.WORD != 0x0400);
+ 119                             		.loc 1 50 8
+ 120 00ca 03                      		nop
+ 121                             	.L6:
+ 122                             		.loc 1 50 9 discriminator 1
+ 123 00cb FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 124                             		.loc 1 50 22 discriminator 1
+ 125 00d0 9C DD                   		mov.W	38[r5], r5
+ 126                             		.loc 1 50 8 discriminator 1
+ 127 00d2 5F 55                   		movu.W	r5, r5
+ 128 00d4 76 05 00 04             		cmp	#0x400, r5
+ 129 00d8 21 F3                   		bne	.L6
+  51:../generate/hwinit.c **** 
+  52:../generate/hwinit.c **** 	// LOCO stop
+  53:../generate/hwinit.c **** 	SYSTEM.LOCOCR.BYTE = 0x01;
+ 130                             		.loc 1 53 2
+ 131 00da FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 132                             		.loc 1 53 21
+ 133 00df F9 54 34 01             		mov.B	#1, 52[r5]
+  54:../generate/hwinit.c **** 
+  55:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA500;
+ 134                             		.loc 1 55 2
+ 135 00e3 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 136                             		.loc 1 55 19
+ 137 00e8 FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+  56:../generate/hwinit.c **** 
+  57:../generate/hwinit.c **** 
+  58:../generate/hwinit.c **** /****************************************************************/
+  59:../generate/hwinit.c **** /*		UART Pin												*/
+  60:../generate/hwinit.c **** /****************************************************************/
+  61:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA50B;
+ 138                             		.loc 1 61 2
+ 139 00ee FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 140                             		.loc 1 61 19
+ 141 00f3 FA 59 FF 01 0B A5       		mov.W	#-23285, 1022[r5]
+  62:../generate/hwinit.c **** 
+  63:../generate/hwinit.c **** 	MPC.PWPR.BIT.B0WI = 0;
+ 142                             		.loc 1 63 2
+ 143 00f9 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 144                             		.loc 1 63 20
+ 145 00fe 8F CD                   		mov.B	31[r4], r5
+ 146 0100 7A 75                   		bclr	#7, r5
+ 147 0102 87 CD                   		mov.B	r5, 31[r4]
+  64:../generate/hwinit.c **** 	MPC.PWPR.BIT.PFSWE = 1;
+ 148                             		.loc 1 64 2
+ 149 0104 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 150                             		.loc 1 64 21
+ 151 0109 8F CD                   		mov.B	31[r4], r5
+ 152 010b 78 65                   		bset	#6, r5
+ 153 010d 87 CD                   		mov.B	r5, 31[r4]
+  65:../generate/hwinit.c **** 
+  66:../generate/hwinit.c **** 	/* Set RXD7 pin */
+  67:../generate/hwinit.c **** 	MPC.P92PFS.BYTE = 0x0AU;
+ 154                             		.loc 1 67 2
+ 155 010f FB 5E 00 C1 08          		mov.L	#0x8c100, r5
+ 156                             		.loc 1 67 18
+ 157 0114 F9 54 8A 0A             		mov.B	#10, 138[r5]
+  68:../generate/hwinit.c **** 	PORT9.PMR.BYTE |= 0x04U;
+ 158                             		.loc 1 68 17
+ 159 0118 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 160 011d CD 54 60                		mov.B	96[r5], r4
+ 161 0120 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 162 0125 65 44                   		or	#4, r4
+ 163 0127 C7 54 60                		mov.B	r4, 96[r5]
+  69:../generate/hwinit.c **** 
+  70:../generate/hwinit.c **** 	/* Set TXD7 pin */
+  71:../generate/hwinit.c **** 	PORT9.PODR.BYTE |= 0x01U;
+ 164                             		.loc 1 71 18
+ 165 012a FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 166 012f CD 54 20                		mov.B	32[r5], r4
+ 167 0132 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 168 0137 65 14                   		or	#1, r4
+ 169 0139 C7 54 20                		mov.B	r4, 32[r5]
+  72:../generate/hwinit.c **** 	MPC.P90PFS.BYTE = 0x0AU;
+ 170                             		.loc 1 72 2
+ 171 013c FB 5E 00 C1 08          		mov.L	#0x8c100, r5
+ 172                             		.loc 1 72 18
+ 173 0141 F9 54 88 0A             		mov.B	#10, 136[r5]
+  73:../generate/hwinit.c **** 	PORT9.PDR.BYTE |= 0x01U;
+ 174                             		.loc 1 73 17
+ 175 0145 FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 176 014a CC 54                   		mov.B	[r5], r4
+ 177 014c FB 5E 09 C0 08          		mov.L	#0x8c009, r5
+ 178 0151 65 14                   		or	#1, r4
+ 179 0153 C3 54                   		mov.B	r4, [r5]
+  74:../generate/hwinit.c **** 
+  75:../generate/hwinit.c **** 	MPC.PWPR.BIT.PFSWE = 1;
+ 180                             		.loc 1 75 2
+ 181 0155 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 182                             		.loc 1 75 21
+ 183 015a 8F CD                   		mov.B	31[r4], r5
+ 184 015c 78 65                   		bset	#6, r5
+ 185 015e 87 CD                   		mov.B	r5, 31[r4]
+  76:../generate/hwinit.c **** 	MPC.PWPR.BIT.B0WI = 0;
+ 186                             		.loc 1 76 2
+ 187 0160 FB 4E 00 C1 08          		mov.L	#0x8c100, r4
+ 188                             		.loc 1 76 20
+ 189 0165 8F CD                   		mov.B	31[r4], r5
+ 190 0167 7A 75                   		bclr	#7, r5
+ 191 0169 87 CD                   		mov.B	r5, 31[r4]
+  77:../generate/hwinit.c **** 
+  78:../generate/hwinit.c **** 	MSTP(SCI7) = 0;
+ 192                             		.loc 1 78 2
+ 193 016b FB 4E 00 00 08          		mov.L	#0x80000, r4
+ 194                             		.loc 1 78 13
+ 195 0170 A9 4D                   		mov.L	20[r4], r5
+ 196 0172 7B 85                   		bclr	#24, r5
+ 197 0174 A1 4D                   		mov.L	r5, 20[r4]
+  79:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA500;
+ 198                             		.loc 1 79 2
+ 199 0176 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 200                             		.loc 1 79 19
+ 201 017b FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+  80:../generate/hwinit.c **** 
+  81:../generate/hwinit.c **** 
+  82:../generate/hwinit.c **** /****************************************************************/
+  83:../generate/hwinit.c **** /*		LED Pin													*/
+  84:../generate/hwinit.c **** /****************************************************************/
+  85:../generate/hwinit.c **** 	// 標準入出力モードにする
+  86:../generate/hwinit.c **** 	PORTC.PMR.BIT.B0 = 0;
+ 202                             		.loc 1 86 2
+ 203 0181 FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 204                             		.loc 1 86 19
+ 205 0186 CD 45 60                		mov.B	96[r4], r5
+ 206 0189 7A 05                   		bclr	#0, r5
+ 207 018b C7 45 60                		mov.B	r5, 96[r4]
+  87:../generate/hwinit.c **** 	PORTC.PMR.BIT.B1 = 0;
+ 208                             		.loc 1 87 2
+ 209 018e FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 210                             		.loc 1 87 19
+ 211 0193 CD 45 60                		mov.B	96[r4], r5
+ 212 0196 7A 15                   		bclr	#1, r5
+ 213 0198 C7 45 60                		mov.B	r5, 96[r4]
+  88:../generate/hwinit.c **** 	PORT0.PMR.BIT.B2 = 0;
+ 214                             		.loc 1 88 2
+ 215 019b FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 216                             		.loc 1 88 19
+ 217 01a0 CD 45 60                		mov.B	96[r4], r5
+ 218 01a3 7A 25                   		bclr	#2, r5
+ 219 01a5 C7 45 60                		mov.B	r5, 96[r4]
+  89:../generate/hwinit.c **** 	PORT0.PMR.BIT.B3 = 0;
+ 220                             		.loc 1 89 2
+ 221 01a8 FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 222                             		.loc 1 89 19
+ 223 01ad CD 45 60                		mov.B	96[r4], r5
+ 224 01b0 7A 35                   		bclr	#3, r5
+ 225 01b2 C7 45 60                		mov.B	r5, 96[r4]
+  90:../generate/hwinit.c **** 
+  91:../generate/hwinit.c **** 	// 全部OFF
+  92:../generate/hwinit.c **** 	PORTC.PODR.BIT.B0 = 0;	// LED1
+ 226                             		.loc 1 92 2
+ 227 01b5 FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 228                             		.loc 1 92 20
+ 229 01ba CD 45 20                		mov.B	32[r4], r5
+ 230 01bd 7A 05                   		bclr	#0, r5
+ 231 01bf C7 45 20                		mov.B	r5, 32[r4]
+  93:../generate/hwinit.c **** 	PORTC.PODR.BIT.B1 = 0;	// LED2
+ 232                             		.loc 1 93 2
+ 233 01c2 FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 234                             		.loc 1 93 20
+ 235 01c7 CD 45 20                		mov.B	32[r4], r5
+ 236 01ca 7A 15                   		bclr	#1, r5
+ 237 01cc C7 45 20                		mov.B	r5, 32[r4]
+  94:../generate/hwinit.c **** 	PORT0.PODR.BIT.B2 = 0;	// LED3
+ 238                             		.loc 1 94 2
+ 239 01cf FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 240                             		.loc 1 94 20
+ 241 01d4 CD 45 20                		mov.B	32[r4], r5
+ 242 01d7 7A 25                   		bclr	#2, r5
+ 243 01d9 C7 45 20                		mov.B	r5, 32[r4]
+  95:../generate/hwinit.c **** 	PORT0.PODR.BIT.B3 = 0;	// LED4
+ 244                             		.loc 1 95 2
+ 245 01dc FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 246                             		.loc 1 95 20
+ 247 01e1 CD 45 20                		mov.B	32[r4], r5
+ 248 01e4 7A 35                   		bclr	#3, r5
+ 249 01e6 C7 45 20                		mov.B	r5, 32[r4]
+  96:../generate/hwinit.c **** 
+  97:../generate/hwinit.c **** 	// LEDに繋がっているポートを出力にする
+  98:../generate/hwinit.c **** 	PORTC.PDR.BIT.B0 = 1;	// LED1
+ 250                             		.loc 1 98 2
+ 251 01e9 FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 252                             		.loc 1 98 19
+ 253 01ee CC 45                   		mov.B	[r4], r5
+ 254 01f0 78 05                   		bset	#0, r5
+ 255 01f2 C3 45                   		mov.B	r5, [r4]
+  99:../generate/hwinit.c **** 	PORTC.PDR.BIT.B1 = 1;	// LED2
+ 256                             		.loc 1 99 2
+ 257 01f4 FB 4E 0C C0 08          		mov.L	#0x8c00c, r4
+ 258                             		.loc 1 99 19
+ 259 01f9 CC 45                   		mov.B	[r4], r5
+ 260 01fb 78 15                   		bset	#1, r5
+ 261 01fd C3 45                   		mov.B	r5, [r4]
+ 100:../generate/hwinit.c **** 	PORT0.PDR.BIT.B2 = 1;	// LED3
+ 262                             		.loc 1 100 2
+ 263 01ff FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 264                             		.loc 1 100 19
+ 265 0204 CC 45                   		mov.B	[r4], r5
+ 266 0206 78 25                   		bset	#2, r5
+ 267 0208 C3 45                   		mov.B	r5, [r4]
+ 101:../generate/hwinit.c **** 	PORT0.PDR.BIT.B3 = 1;	// LED4
+ 268                             		.loc 1 101 2
+ 269 020a FB 4E 00 C0 08          		mov.L	#0x8c000, r4
+ 270                             		.loc 1 101 19
+ 271 020f CC 45                   		mov.B	[r4], r5
+ 272 0211 78 35                   		bset	#3, r5
+ 273 0213 C3 45                   		mov.B	r5, [r4]
+ 102:../generate/hwinit.c **** 
+ 103:../generate/hwinit.c **** 
+ 104:../generate/hwinit.c **** /****************************************************************/
+ 105:../generate/hwinit.c **** /*		CMT 0													*/
+ 106:../generate/hwinit.c **** /****************************************************************/
+ 107:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA503;
+ 274                             		.loc 1 107 2
+ 275 0215 FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 276                             		.loc 1 107 19
+ 277 021a FA 59 FF 01 03 A5       		mov.W	#-23293, 1022[r5]
+ 108:../generate/hwinit.c **** 	MSTP(CMT0) = 0;
+ 278                             		.loc 1 108 2
+ 279 0220 FB 4E 00 00 08          		mov.L	#0x80000, r4
+ 280                             		.loc 1 108 13
+ 281 0225 A9 45                   		mov.L	16[r4], r5
+ 282 0227 7A F5                   		bclr	#15, r5
+ 283 0229 A1 45                   		mov.L	r5, 16[r4]
+ 109:../generate/hwinit.c **** 	SYSTEM.PRCR.WORD = 0xA500;
+ 284                             		.loc 1 109 2
+ 285 022b FB 5E 00 00 08          		mov.L	#0x80000, r5
+ 286                             		.loc 1 109 19
+ 287 0230 FA 59 FF 01 00 A5       		mov.W	#-23296, 1022[r5]
+ 110:../generate/hwinit.c **** 	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
+ 288                             		.loc 1 110 2
+ 289 0236 FB 5E 02 80 08          		mov.L	#0x88002, r5
+ 290                             		.loc 1 110 17
+ 291 023b F8 59 81 00             		mov.W	#0x81, [r5]
+ 111:../generate/hwinit.c **** 
+ 112:../generate/hwinit.c **** }
+ 292                             		.loc 1 112 1
+ 293 023f 03                      		nop
+ 294 0240 3F AA 01                		rtsd	#4, r10-r10
+ 295                             	.LFE0:
+ 333                             	.Letext0:
+ 334                             		.file 2 "../generate/iodefine.h"

@@ -13,6 +13,7 @@
 #include "./peripheral/SCI7.h"
 #include "./peripheral/CMT.h"
 
+
 #ifdef CPPAPP
 //Initialize global constructors
 extern void __main()
@@ -34,160 +35,38 @@ extern void __main()
 #endif
 
 
-
 int main(void) {
 
 	volatile uint16 num = 8;
 	volatile uint32 i = 0;
+	uint8 *buf1 = "GR-KAEDE booting\r\n";
 	uint8 *buf = "hello!\r\n";
 
+	// uart_create(UART_9600);
+	// uart_start();
+	// SCI7_Serial_Send(buf1, 19);
+	// uart_stop();
 
-
-/***************************************************************/
-/*		System Clock											*/
-/***************************************************************/
-	SYSTEM.PRCR.WORD = 0xA50Bu;
-
-	// port
-	PORT3.PDR.BYTE = 0u;
-
-	// main clock start
-	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;
-	SYSTEM.MOSCCR.BYTE = 0x00u;
-	while (0x00u != SYSTEM.MOSCCR.BYTE);
-	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);
-
-	// PLL
-	SYSTEM.PLLCR.BIT.STC = 0x13;	// *10
-	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;	// PLL clock source: main clock
-	SYSTEM.PLLCR.BIT.PLIDIV = 0;	// /1
-	SYSTEM.PLLCR2.BIT.PLLEN = 0;	// PLL start
-	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF);
-
-	// division
-	/*	main clock: 12MHz, PLL: *10
-		FCLK: 60 MHz	ICLK: 120 MHz	BCLK: 120 MHz
-		PCLKA: 60 MHz	PCLKB: 60 MHz
-		PCLKC: 60 MHz	PCLKD: 60 MHz */
-	SYSTEM.SCKCR.LONG = 0x10001111;
-	while (SYSTEM.SCKCR.LONG != 0x10001111);
-	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
-	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
-
-	// select clock source
-	SYSTEM.SCKCR3.WORD = 0x0400;
-	while (SYSTEM.SCKCR3.WORD != 0x0400);
-
-	// LOCO stop
-	SYSTEM.LOCOCR.BYTE = 0x01;
-
-	SYSTEM.PRCR.WORD = 0xA500;
-
-
-/***************************************************************/
-/*		UART Pin												*/
-/***************************************************************/
-	SYSTEM.PRCR.WORD = 0xA50B;
-
-	MPC.PWPR.BIT.B0WI = 0;
-	MPC.PWPR.BIT.PFSWE = 1;
-
-	/* Set RXD7 pin */
-	MPC.P92PFS.BYTE = 0x0AU;
-	PORT9.PMR.BYTE |= 0x04U;
-
-	/* Set TXD7 pin */
-	PORT9.PODR.BYTE |= 0x01U;
-	MPC.P90PFS.BYTE = 0x0AU;
-	PORT9.PDR.BYTE |= 0x01U;
-
-	MPC.PWPR.BIT.PFSWE = 1;
-	MPC.PWPR.BIT.B0WI = 0;
-
-	MSTP(SCI7) = 0;
-	SYSTEM.PRCR.WORD = 0xA500;
-
-
-/***************************************************************/
-/*		UART Configuration										*/
-/***************************************************************/
-	IPR(SCI7,RXI7) = _IPR_LEVEL10;
-	IPR(SCI7,TXI7) = _IPR_LEVEL10;
-
-	SCI7.SCR.BYTE = 0x00u;	/* Clear the control register */
-	SCI7.SCR.BYTE = 0x00u;	/* Set clock enable */
-
-	/* Clear the SIMR1.IICM, SPMR.CKPH, and CKPOL bit, and set SPMR */
-	SCI7.SIMR1.BIT.IICM = 0u;
-	SCI7.SPMR.BYTE = 0x00u;
-
-	/* Set control registers */
-	SCI7.SMR.BYTE = 0x00u;
-	SCI7.SMR.BIT.CKS = 2u;	// pclk / 16
-	SCI7.SCMR.BYTE = 0xF2u;
-	SCI7.SEMR.BYTE = 0x00u;
-
-	/* Set bit rate */
-	SCI7.BRR = 11u;	// 9600 bps
-
-
-/***************************************************************/
-/*		UART Start											*/
-/***************************************************************/
-	IR(SCI7,TXI7) = 0u;
-	IR(SCI7,RXI7) = 0u;
-
-	IEN(SCI7,TXI7) = 1u;
-	ICU.GENBL0.BIT.EN14 = 1u;	// TEI7 (Transmit Error Interrupt)
-	IEN(SCI7,RXI7) = 1u;
-	ICU.GENBL0.BIT.EN15 = 1u;	// ERI7 (Error Recieve Interrupt)
-
-
-/***************************************************************/
-/*		UART Send												*/
-/***************************************************************/
+	uart_create(UART_9600);
+	uart_start();
 	SCI7_Serial_Send(buf, num);
+//	uart_stop();
 
-
-	led_create();
-	init_CMT0();
 
 	while(1) {
-#if 0
-		i = 0xfffff;
-		while (i)	i--;
+		ms_wait(500);
 		led_on(LED1);
-
-		i = 0xfffff;
-		while (i)	i--;
+		ms_wait(500);
 		led_on(LED2);
-
-		i = 0xfffff;
-		while (i)	i--;
+		ms_wait(500);
 		led_on(LED3);
-
-		i = 0xfffff;
-		while (i)	i--;
+		ms_wait(500);
 		led_on(LED4);
-
-		i = 0xfffff;
-		while (i)	i--;
+		ms_wait(500);
 		led_stop();
-#else
-		ms_wait(50);
-		led_on(LED1);
-		ms_wait(50);
-		led_on(LED2);
-		ms_wait(50);
-		led_on(LED3);
-		ms_wait(50);
-		led_on(LED4);
-		ms_wait(50);
-		led_stop();
-#endif
-
-
-	// TODO: add application code here
 	}
+
 return 0;
 }
+
+

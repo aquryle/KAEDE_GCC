@@ -14,20 +14,99 @@ extern void HardwareSetup(void);
 
 void HardwareSetup(void)
 {
-/*
- BSC.CS0MOD.WORD = 0x1234;
- BSC.CS7CNT.WORD = 0x5678;
-  
- SCI0.SCR.BIT.TE  = 0;
- SCI0.SCR.BIT.RE  = 0;
- SCI0.SCR.BIT.TE  = 1;
- SCI2.SSR.BIT.PER = 0;
+/****************************************************************/
+/*		System Clock											*/
+/****************************************************************/
+	SYSTEM.PRCR.WORD = 0xA50Bu;
 
- TMR0.TCR.BYTE = 0x12;
- TMR1.TCR.BYTE = 0x12;
- TMR2.TCR.BYTE = 0x12;
- 
- P0.DDR.BYTE = 0x12;
- P1.DDR.BYTE = 0x12;
-*/
+	// port
+	PORT3.PDR.BYTE = 0u;
+
+	// main clock start
+	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;
+	SYSTEM.MOSCCR.BYTE = 0x00u;
+	while (0x00u != SYSTEM.MOSCCR.BYTE);
+	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);
+
+	// PLL
+	SYSTEM.PLLCR.BIT.STC = 0x13;	// *10
+	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;	// PLL clock source: main clock
+	SYSTEM.PLLCR.BIT.PLIDIV = 0;	// /1
+	SYSTEM.PLLCR2.BIT.PLLEN = 0;	// PLL start
+	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF);
+
+	// division
+	/*	main clock: 12MHz, PLL: *10
+		FCLK: 60 MHz	ICLK: 120 MHz	BCLK: 120 MHz
+		PCLKA: 60 MHz	PCLKB: 60 MHz
+		PCLKC: 60 MHz	PCLKD: 60 MHz */
+	SYSTEM.SCKCR.LONG = 0x10001111;
+	while (SYSTEM.SCKCR.LONG != 0x10001111);
+	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
+	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
+
+	// select clock source
+	SYSTEM.SCKCR3.WORD = 0x0400;
+	while (SYSTEM.SCKCR3.WORD != 0x0400);
+
+	// LOCO stop
+	SYSTEM.LOCOCR.BYTE = 0x01;
+
+	SYSTEM.PRCR.WORD = 0xA500;
+
+
+/****************************************************************/
+/*		UART Pin												*/
+/****************************************************************/
+	SYSTEM.PRCR.WORD = 0xA50B;
+
+	MPC.PWPR.BIT.B0WI = 0;
+	MPC.PWPR.BIT.PFSWE = 1;
+
+	/* Set RXD7 pin */
+	MPC.P92PFS.BYTE = 0x0AU;
+	PORT9.PMR.BYTE |= 0x04U;
+
+	/* Set TXD7 pin */
+	PORT9.PODR.BYTE |= 0x01U;
+	MPC.P90PFS.BYTE = 0x0AU;
+	PORT9.PDR.BYTE |= 0x01U;
+
+	MPC.PWPR.BIT.PFSWE = 1;
+	MPC.PWPR.BIT.B0WI = 0;
+
+	MSTP(SCI7) = 0;
+	SYSTEM.PRCR.WORD = 0xA500;
+
+
+/****************************************************************/
+/*		LED Pin													*/
+/****************************************************************/
+	// 標準入出力モードにする
+	PORTC.PMR.BIT.B0 = 0;
+	PORTC.PMR.BIT.B1 = 0;
+	PORT0.PMR.BIT.B2 = 0;
+	PORT0.PMR.BIT.B3 = 0;
+
+	// 全部OFF
+	PORTC.PODR.BIT.B0 = 0;	// LED1
+	PORTC.PODR.BIT.B1 = 0;	// LED2
+	PORT0.PODR.BIT.B2 = 0;	// LED3
+	PORT0.PODR.BIT.B3 = 0;	// LED4
+
+	// LEDに繋がっているポートを出力にする
+	PORTC.PDR.BIT.B0 = 1;	// LED1
+	PORTC.PDR.BIT.B1 = 1;	// LED2
+	PORT0.PDR.BIT.B2 = 1;	// LED3
+	PORT0.PDR.BIT.B3 = 1;	// LED4
+
+
+/****************************************************************/
+/*		CMT 0													*/
+/****************************************************************/
+	SYSTEM.PRCR.WORD = 0xA503;
+	MSTP(CMT0) = 0;
+	SYSTEM.PRCR.WORD = 0xA500;
+	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
+
 }

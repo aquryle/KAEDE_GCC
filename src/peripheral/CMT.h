@@ -11,7 +11,6 @@
 #include "../common.h"
 
 
-void init_CMT0(void);
 void ms_wait(uint32 cnt);
 
 

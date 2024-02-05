@@ -8,14 +8,6 @@
 
 #include "CMT.h"
 
-void init_CMT0()
-{
-	SYSTEM.PRCR.WORD = 0xA503;			// レジスタライトプロテクション解除
-	MSTP(CMT0) = 0;						// CMT0モジュールストップ解除
-	SYSTEM.PRCR.WORD = 0xA500;			// レジスタライトプロテクション設定
-	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
-}
-
 
 /**
  * @fn
