@@ -109,4 +109,13 @@ void HardwareSetup(void)
 	SYSTEM.PRCR.WORD = 0xA500;
 	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
 
+
+/****************************************************************/
+/*		Group interrupt BL0 enable								*/
+/****************************************************************/
+	IEN(ICU,GROUPBL0) = 0;
+	IPR(ICU,GROUPBL0) = 10;
+	IEN(ICU,GROUPBL0) = 1;
+
+
 }

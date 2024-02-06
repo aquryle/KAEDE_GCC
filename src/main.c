@@ -9,6 +9,7 @@
 /***************************************************************/
 
 #include "common.h"
+#include "tool.h"
 #include "./peripheral/GPIO.h"
 #include "./peripheral/SCI7.h"
 #include "./peripheral/CMT.h"
@@ -34,23 +35,30 @@ extern void __main()
 }
 #endif
 
-
+/**
+ * @brief
+ *
+ * @return int
+ */
 int main(void) {
 
 	volatile uint16 num = 8;
 	volatile uint32 i = 0;
-	uint8 *buf1 = "GR-KAEDE booting\r\n";
-	uint8 *buf = "hello!\r\n";
-
-	// uart_create(UART_9600);
-	// uart_start();
-	// SCI7_Serial_Send(buf1, 19);
-	// uart_stop();
+	uint8 *buf1 = "GR-KAEDE boot...\r\n";
+	uint8 *buf2 = "hello!\r\n";
+	uint8 tmp = 0;
 
 	uart_create(UART_9600);
 	uart_start();
-	SCI7_Serial_Send(buf, num);
-//	uart_stop();
+	SCI7_Serial_Send(buf1, 18);
+	while (0 == get_sci7_send_end_flag());
+	uart_stop();
+
+	uart_create(UART_9600);
+	uart_start();
+	SCI7_Serial_Send(buf2, 8);
+	while (0 == get_sci7_send_end_flag());
+	uart_stop();
 
 
 	while(1) {

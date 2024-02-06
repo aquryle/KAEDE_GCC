@@ -21,8 +21,8 @@ typedef enum {
 #define ERR_SCI7_SEND_TOUT	(ERR_SCI7_BASE + 0x01)
 
 
-extern uint8 sci7_send_end_flag;
 
+extern uint8 get_sci7_send_end_flag(void);
 extern void uart_create(UART_BAUD baud);
 extern void uart_start(void);
 extern void uart_stop(void);

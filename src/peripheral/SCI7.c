@@ -14,13 +14,18 @@ static volatile uint8 *sci7_rx_address;	/* SCI7 receive buffer address */
 static volatile uint16 sci7_rx_count;		/* SCI7 receive data number */
 static volatile uint16 sci7_rx_length;		/* SCI7 receive data length */
 
-uint8 sci7_send_end_flag = 1;
+static volatile uint8 sci7_send_end_flag;
+
+
+uint8 get_sci7_send_end_flag(void) {return sci7_send_end_flag;}
+
+
+
 
 void uart_create(UART_BAUD baud) {
-
-
 	IPR(SCI7,RXI7) = _IPR_LEVEL10;
 	IPR(SCI7,TXI7) = _IPR_LEVEL10;
+	IPR(ICU, GROUPBL0) = _IPR_LEVEL10;
 
 	SCI7.SCR.BYTE = 0x00u;	/* Clear the control register */
 	SCI7.SCR.BYTE = 0x00u;	/* Set clock enable */
@@ -58,8 +63,6 @@ void uart_create(UART_BAUD baud) {
 
 
 void uart_start(void) {
-	sci7_send_end_flag = 0;
-
 	IR(SCI7,TXI7) = 0u;
 	IR(SCI7,RXI7) = 0u;
 
@@ -68,6 +71,7 @@ void uart_start(void) {
 	IEN(SCI7,RXI7) = 1u;
 	ICU.GENBL0.BIT.EN15 = 1u;	// ERI7 (Error Recieve Interrupt)
 
+	sci7_send_end_flag = 0;
 }
 
 
@@ -104,6 +108,8 @@ void SCI7_Serial_Send(uint8 *const tx_buf, uint16 tx_num)
 		// status = MD_ERROR;
 	}
 	else {
+		sci7_send_end_flag = 0;
+
 		sci7_tx_address = tx_buf;
 		sci7_tx_count = tx_num;
 		IEN(SCI7, TXI7) = 0U;
@@ -140,6 +146,7 @@ void Excep_TEI7(void) {
 
 	sci7_send_end_flag = 1;
 }
+
 
 void INT_Excep_ICU_GROUPBL0(void){
 	// if (ICU.GRPBL0.BIT.IS0);
