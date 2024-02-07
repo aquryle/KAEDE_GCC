@@ -8,7 +8,7 @@
 #ifndef GPIO_H_
 #define GPIO_H_
 
-#include "../common.h"
+#include "common.h"
 
 typedef enum {
 	LED1,

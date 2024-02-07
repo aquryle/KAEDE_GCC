@@ -8,7 +8,7 @@
 #ifndef CMT_H_
 #define CMT_H_
 
-#include "../common.h"
+#include "common.h"
 
 
 void ms_wait(uint32 cnt);
