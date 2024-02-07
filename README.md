@@ -7,12 +7,12 @@ and defined in `peripheral`.
 
 - CMT  
 - PWM  
-- System clock  
+
 - UART  
 
 ## Done
 
-
+- System clock  
 
 
 
