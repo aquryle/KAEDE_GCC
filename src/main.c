@@ -8,6 +8,17 @@
 /*                                                             */
 /***************************************************************/
 
+/**
+ * @file main.c
+ * @author sata
+ * @brief main routine
+ * @version 0.1
+ * @date 2024-02-07
+ * @details あああああああ
+ * @copyright Copyright (c) 2024
+ */
+
+
 #include "common.h"
 #include "tool.h"
 #include "./peripheral/GPIO.h"
@@ -36,9 +47,9 @@ extern void __main()
 #endif
 
 /**
- * @brief
- *
- * @return int
+ * @brief main function
+ * @return int 0
+ * @details UART send
  */
 int main(void) {
 

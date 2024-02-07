@@ -5,6 +5,15 @@
  *      Author: sata
  */
 
+/**
+ * @file tool.c
+ * @author sata
+ * @brief MCU independent functions
+ * @version 0.1
+ * @date 2024-02-07
+ * @copyright Copyright (c) 2024
+ */
+
 #include "tool.h"
 
 uint16 count_str(uint8 *buf) {

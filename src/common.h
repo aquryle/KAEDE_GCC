@@ -5,6 +5,15 @@
  *      Author: sata
  */
 
+/**
+ * @file common.h
+ * @author sata
+ * @brief common header
+ * @version 0.1
+ * @date 2024-02-07
+ * @copyright Copyright (c) 2024
+ */
+
 #ifndef COMMON_H_
 #define COMMON_H_
 

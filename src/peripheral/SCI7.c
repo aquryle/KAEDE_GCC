@@ -5,6 +5,15 @@
  *      Author: sata
  */
 
+/**
+ * @file SCI7.c
+ * @author sata
+ * @brief UART
+ * @version 0.1
+ * @date 2024-02-07
+ * @copyright Copyright (c) 2024
+ */
+
 #include "SCI7.h"
 #include "interrupt_handlers.h"
 

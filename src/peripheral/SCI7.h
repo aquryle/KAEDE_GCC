@@ -5,6 +5,15 @@
  *      Author: sata
  */
 
+/**
+ * @file SCI7.h
+ * @author sata
+ * @brief UART
+ * @version 0.1
+ * @date 2024-02-07
+ * @copyright Copyright (c) 2024
+ */
+
 #ifndef SCI7_H_
 #define SCI7_H_
 
