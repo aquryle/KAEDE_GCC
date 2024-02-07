@@ -3,7 +3,10 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/generate",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/peripheral",
             ],
             "defines": [
                 "_DEBUG",

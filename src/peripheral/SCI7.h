@@ -17,7 +17,7 @@
 #ifndef SCI7_H_
 #define SCI7_H_
 
-#include "../common.h"
+#include "common.h"
 
 typedef enum {
 	UART_9600,

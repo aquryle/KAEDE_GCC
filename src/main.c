@@ -21,9 +21,9 @@
 
 #include "common.h"
 #include "tool.h"
-#include "./peripheral/GPIO.h"
-#include "./peripheral/SCI7.h"
-#include "./peripheral/CMT.h"
+#include "GPIO.h"
+#include "SCI7.h"
+#include "CMT.h"
 
 
 #ifdef CPPAPP
