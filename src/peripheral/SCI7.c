@@ -12,21 +12,30 @@
  * @version 0.1
  * @date 2024-02-07
  * @copyright Copyright (c) 2024
+ * @todo recieve
  */
 
 #include "SCI7.h"
 #include "interrupt_handlers.h"
 
-static volatile uint8 *sci7_tx_address;	/* SCI7 transmit buffer address */
-static volatile uint16 sci7_tx_count;		/* SCI7 transmit data number */
-static volatile uint8 *sci7_rx_address;	/* SCI7 receive buffer address */
-static volatile uint16 sci7_rx_count;		/* SCI7 receive data number */
-static volatile uint16 sci7_rx_length;		/* SCI7 receive data length */
-
+//! SCI7 transmit buffer address
+static volatile uint8 *sci7_tx_address;
+//! SCI7 transmit data number
+static volatile uint16 sci7_tx_count;
+//! SCI7 receive buffer address
+static volatile uint8 *sci7_rx_address;
+//! SCI7 receive data number
+static volatile uint16 sci7_rx_count;
+//! SCI7 receive data length
+static volatile uint16 sci7_rx_length;
+//! SCI7 send end flag (1: sent, 0: sending or not started)
 static volatile uint8 sci7_send_end_flag;
 
 
-uint8 get_sci7_send_end_flag(void) {return sci7_send_end_flag;}
+
+uint8 get_sci7_send_end_flag(void) {
+	return sci7_send_end_flag;
+}
 
 
 

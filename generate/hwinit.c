@@ -3,7 +3,18 @@
 /*    Date Generated: 18/57/2017                                        */
 /************************************************************************/
 
+/**
+ * @file hwinit.c
+ * @author sata
+ * @brief HardwareSetup(void) is defined.
+ * @version 0.1
+ * @date 2024-02-07
+ * @details Hardware setup before main().
+ * @copyright Copyright (c) 2024
+ */
+
 #include "iodefine.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,8 +23,16 @@ extern void HardwareSetup(void);
 }
 #endif
 
+
+/**
+ * @brief Hardware setup before main().
+ * @details clock, port, cmt, module stop, group interrupt
+ * @todo Organize code by port
+ */
 void HardwareSetup(void)
 {
+#if 0
+#else
 /****************************************************************/
 /*		System Clock											*/
 /****************************************************************/
@@ -116,6 +135,5 @@ void HardwareSetup(void)
 	IEN(ICU,GROUPBL0) = 0;
 	IPR(ICU,GROUPBL0) = 10;
 	IEN(ICU,GROUPBL0) = 1;
-
-
+#endif
 }

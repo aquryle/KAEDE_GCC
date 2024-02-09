@@ -16,6 +16,12 @@
 
 #include "tool.h"
 
+/**
+ * @brief param char counted from 1st to terminater.
+ * @param buf String
+ * @return uint16 counted num
+ * @details required <string.h>
+ */
 uint16 count_str(uint8 *buf) {
 	uint16 i;
 	uint8 tmp;
