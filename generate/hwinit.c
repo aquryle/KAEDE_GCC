@@ -14,6 +14,8 @@
  */
 
 #include "iodefine.h"
+#include "common.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +33,92 @@ extern void HardwareSetup(void);
  */
 void HardwareSetup(void)
 {
-#if 0
+#if 1
+/****************************************************************/
+/*		Clock (main clock: 12MHz)								*/
+/*	ICLK:	120 MHz		FCLK:	60 MHz		BCLK:	120MHz		*/
+/*	PCLKA:	60 MHz		PCLKB:	60 MHz							*/
+/*	PCLKC:	60 MHz		PCLKC:	60 MHz							*/
+/****************************************************************/
+	PORT3.PDR.BYTE = 0u;			// Clock connected port: input.
+
+	// main clock start
+	SYSTEM.PRCR.WORD = 0xA50Bu;		// Protected register write enable.
+
+	SYSTEM.MOSCWTCR.BYTE = 0x0Fu;				// Main clock oscillator wait: max
+	SYSTEM.MOSCCR.BYTE = 0x00u;					// Main clock: start
+	while (0x00u != SYSTEM.MOSCCR.BYTE);		// Waiting until value set
+	while (1u != SYSTEM.OSCOVFSR.BIT.MOOVF);	// Waiting until main clock stable.
+
+	// PLL
+	SYSTEM.PLLCR.BIT.STC = 0x13;			// PLL multiple x10
+	SYSTEM.PLLCR.BIT.PLLSRCSEL = 0;			// PLL clock source: main clock
+	SYSTEM.PLLCR.BIT.PLIDIV = 0;			// PLL divide /1
+	SYSTEM.PLLCR2.BIT.PLLEN = 0;			// PLL start
+	while (1 != SYSTEM.OSCOVFSR.BIT.PLOVF); // Waiting until PLL stable.
+
+	// peripheral clock division
+	SYSTEM.SCKCR.LONG = 0x10001111;
+	while (SYSTEM.SCKCR.LONG != 0x10001111);
+	SYSTEM.SCKCR2.WORD = 0x0031;	// UCLK: /4
+	SYSTEM.BCKCR.BYTE  = 0x01;		// BCLK: /4
+
+	// select clock source
+	SYSTEM.SCKCR3.WORD = 0x0400;			// System clock: PLL
+	while (SYSTEM.SCKCR3.WORD != 0x0400);
+	SYSTEM.LOCOCR.BYTE = 0x01;				// LOCO stop
+
+	SYSTEM.PRCR.WORD = 0xA500;				// Protected register write disable.
+
+/****************************************************************/
+/*		Pin Configuration										*/
+/****************************************************************/
+	// MPC
+	MPC.PWPR.BIT.B0WI = 0;
+	MPC.PWPR.BIT.PFSWE = 1;
+	MPC.P92PFS.BYTE = 0x0AU;	// P92 -> RX7
+	MPC.P90PFS.BYTE = 0x0AU;	// P90 -> TX7
+	MPC.PWPR.BIT.PFSWE = 1;
+	MPC.PWPR.BIT.B0WI = 0;
+
+	// PMR
+	PORT9.PMR.BYTE |= _B2;				// RX7: 1
+	PORTC.PMR.BYTE &= ~(_B0 & _B1);		// LED1-2: 0
+	PORT0.PMR.BYTE &= ~(_B2 & _B3);		// LED3-4: 0
+
+	// PODR
+	PORT9.PODR.BYTE |= _B0;				// TX7: 1
+	PORTC.PODR.BYTE &= ~(_B0 & _B1);	// LED1-2: 0
+	PORT0.PODR.BYTE &= ~(_B2 & _B3);	// LED3-4: 0
+
+
+	// PDR
+	PORT9.PDR.BYTE |= _B0;				// TX7: output
+	PORTC.PDR.BYTE |= (_B0 & _B1);		// LED1-2: output
+	PORT0.PDR.BYTE |= (_B2 & _B3);		// LED3-4: output
+
+/****************************************************************/
+/*		Module stop invalidation								*/
+/****************************************************************/
+	SYSTEM.PRCR.WORD = 0xA50Bu;		// Protected register write enable.
+	MSTP(SCI7) = 0;
+	MSTP(CMT0) = 0;
+	SYSTEM.PRCR.WORD = 0xA500;		// Protected register write disable.
+
+
+/****************************************************************/
+/*		CMT		// これはcmt.cに書く？							*/
+/****************************************************************/
+	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
+
+
+/****************************************************************/
+/*		Group interrupt										*/
+/****************************************************************/
+	IEN(ICU,GROUPBL0) = 0;
+	IPR(ICU,GROUPBL0) = 10;
+	IEN(ICU,GROUPBL0) = 1;
+
 #else
 /****************************************************************/
 /*		System Clock											*/
