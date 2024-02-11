@@ -16,7 +16,7 @@
  * @param cnt カウントする時間（ミリ秒）
  * @details あとで1874の計算式を書く
 */
-void ms_wait( uint32 cnt )
+void ms_wait(uint32 cnt)
 {
 	volatile uint32 i, tmp;
 
@@ -28,3 +28,7 @@ void ms_wait( uint32 cnt )
 	CMT.CMSTR0.BIT.STR0 = 0;		// CMT0 stop
 }
 
+
+void cmt0_create() {
+	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
+}

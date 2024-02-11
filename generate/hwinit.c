@@ -91,33 +91,30 @@ void HardwareSetup(void)
 	PORTC.PODR.BYTE &= ~(_B0 & _B1);	// LED1-2: 0
 	PORT0.PODR.BYTE &= ~(_B2 & _B3);	// LED3-4: 0
 
-
 	// PDR
 	PORT9.PDR.BYTE |= _B0;				// TX7: output
 	PORTC.PDR.BYTE |= (_B0 & _B1);		// LED1-2: output
 	PORT0.PDR.BYTE |= (_B2 & _B3);		// LED3-4: output
 
 /****************************************************************/
-/*		Module stop invalidation								*/
+/*		Module stop invalidation	// これは各モジュールのcreateに書く？							*/
 /****************************************************************/
 	SYSTEM.PRCR.WORD = 0xA50Bu;		// Protected register write enable.
 	MSTP(SCI7) = 0;
 	MSTP(CMT0) = 0;
 	SYSTEM.PRCR.WORD = 0xA500;		// Protected register write disable.
 
-
 /****************************************************************/
 /*		CMT		// これはcmt.cに書く？							*/
 /****************************************************************/
 	CMT0.CMCR.WORD = 0x0081;			// PCLKB/32 = 1875000 Hz
 
-
 /****************************************************************/
 /*		Group interrupt										*/
 /****************************************************************/
-	IEN(ICU,GROUPBL0) = 0;
-	IPR(ICU,GROUPBL0) = 10;
-	IEN(ICU,GROUPBL0) = 1;
+	IEN(ICU,GROUPBL0) = 0;				// interrupt disable
+	IPR(ICU,GROUPBL0) = _IPR_LEVEL10;	// interrupt priority
+	IEN(ICU,GROUPBL0) = 1;				// interrupt enable
 
 #else
 /****************************************************************/
